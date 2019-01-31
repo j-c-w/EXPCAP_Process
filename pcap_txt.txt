@@ -1,0 +1,100 @@
+1546060687.599476 IP 10.0.0.26.39102 > 10.0.0.34.http: Flags [S], seq 3367202936, win 29200, options [mss 1460,sackOK,TS val 2876589754 ecr 0,nop,wscale 7], length 0
+1546060687.599514 IP 10.0.0.26.39104 > 10.0.0.34.http: Flags [S], seq 2457166147, win 29200, options [mss 1460,sackOK,TS val 2876589754 ecr 0,nop,wscale 7], length 0
+1546060687.599540 IP 10.0.0.26.39106 > 10.0.0.34.http: Flags [S], seq 3552192782, win 29200, options [mss 1460,sackOK,TS val 2876589754 ecr 0,nop,wscale 7], length 0
+1546060687.599565 IP 10.0.0.26.39108 > 10.0.0.34.http: Flags [S], seq 556579517, win 29200, options [mss 1460,sackOK,TS val 2876589754 ecr 0,nop,wscale 7], length 0
+1546060687.599587 IP 10.0.0.26.39110 > 10.0.0.34.http: Flags [S], seq 2163297292, win 29200, options [mss 1460,sackOK,TS val 2876589754 ecr 0,nop,wscale 7], length 0
+1546060687.605010 IP 10.0.0.34.http > 10.0.0.26.39110: Flags [S.], seq 1873773366, ack 2163297293, win 28960, options [mss 1418,sackOK,TS val 2413311727 ecr 2876589754,nop,wscale 7], length 0
+1546060687.605048 IP 10.0.0.26.39110 > 10.0.0.34.http: Flags [.], ack 1, win 229, options [nop,nop,TS val 2876589759 ecr 2413311727], length 0
+1546060687.605097 IP 10.0.0.26.39110 > 10.0.0.34.http: Flags [P.], seq 1:88, ack 1, win 229, options [nop,nop,TS val 2876589759 ecr 2413311727], length 87: HTTP: GET /index.html HTTP/1.0
+1546060687.605185 IP 10.0.0.34.http > 10.0.0.26.39110: Flags [.], ack 88, win 227, options [nop,nop,TS val 2413311731 ecr 2876589759], length 0
+1546060687.605404 IP 10.0.0.34.http > 10.0.0.26.39110: Flags [.], seq 1:8437, ack 88, win 227, options [nop,nop,TS val 2413311732 ecr 2876589759], length 8436: HTTP: HTTP/1.1 200 OK
+1546060687.605423 IP 10.0.0.26.39110 > 10.0.0.34.http: Flags [.], ack 8437, win 360, options [nop,nop,TS val 2876589759 ecr 2413311732], length 0
+1546060687.605434 IP 10.0.0.34.http > 10.0.0.26.39102: Flags [S.], seq 697322408, ack 3367202937, win 28960, options [mss 1418,sackOK,TS val 2413311727 ecr 2876589754,nop,wscale 7], length 0
+1546060687.605448 IP 10.0.0.26.39102 > 10.0.0.34.http: Flags [.], ack 1, win 229, options [nop,nop,TS val 2876589759 ecr 2413311727], length 0
+1546060687.605497 IP 10.0.0.34.http > 10.0.0.26.39106: Flags [S.], seq 990389805, ack 3552192783, win 28960, options [mss 1418,sackOK,TS val 2413311728 ecr 2876589754,nop,wscale 7], length 0
+1546060687.605516 IP 10.0.0.34.http > 10.0.0.26.39104: Flags [S.], seq 2335696841, ack 2457166148, win 28960, options [mss 1418,sackOK,TS val 2413311728 ecr 2876589754,nop,wscale 7], length 0
+1546060687.605521 IP 10.0.0.26.39106 > 10.0.0.34.http: Flags [.], ack 1, win 229, options [nop,nop,TS val 2876589760 ecr 2413311728], length 0
+1546060687.605522 IP 10.0.0.26.39102 > 10.0.0.34.http: Flags [P.], seq 1:88, ack 1, win 229, options [nop,nop,TS val 2876589760 ecr 2413311727], length 87: HTTP: GET /index.html HTTP/1.0
+1546060687.605539 IP 10.0.0.26.39104 > 10.0.0.34.http: Flags [.], ack 1, win 229, options [nop,nop,TS val 2876589760 ecr 2413311728], length 0
+1546060687.605543 IP 10.0.0.26.39106 > 10.0.0.34.http: Flags [P.], seq 1:88, ack 1, win 229, options [nop,nop,TS val 2876589760 ecr 2413311728], length 87: HTTP: GET /index.html HTTP/1.0
+1546060687.605555 IP 10.0.0.26.39104 > 10.0.0.34.http: Flags [P.], seq 1:88, ack 1, win 229, options [nop,nop,TS val 2876589760 ecr 2413311728], length 87: HTTP: GET /index.html HTTP/1.0
+1546060687.605569 IP 10.0.0.34.http > 10.0.0.26.39108: Flags [S.], seq 3813755672, ack 556579518, win 28960, options [mss 1418,sackOK,TS val 2413311728 ecr 2876589754,nop,wscale 7], length 0
+1546060687.605573 IP 10.0.0.34.http > 10.0.0.26.39110: Flags [FP.], seq 8437:11596, ack 88, win 227, options [nop,nop,TS val 2413311732 ecr 2876589759], length 3159: HTTP
+1546060687.605597 IP 10.0.0.26.39110 > 10.0.0.34.http: Flags [.], ack 11597, win 410, options [nop,nop,TS val 2876589760 ecr 2413311732], length 0
+1546060687.605603 IP 10.0.0.34.http > 10.0.0.26.39102: Flags [.], ack 88, win 227, options [nop,nop,TS val 2413311732 ecr 2876589760], length 0
+1546060687.605604 IP 10.0.0.26.39108 > 10.0.0.34.http: Flags [.], ack 1, win 229, options [nop,nop,TS val 2876589760 ecr 2413311728], length 0
+1546060687.605616 IP 10.0.0.34.http > 10.0.0.26.39106: Flags [.], ack 88, win 227, options [nop,nop,TS val 2413311732 ecr 2876589760], length 0
+1546060687.605664 IP 10.0.0.26.39108 > 10.0.0.34.http: Flags [P.], seq 1:88, ack 1, win 229, options [nop,nop,TS val 2876589760 ecr 2413311728], length 87: HTTP: GET /index.html HTTP/1.0
+1546060687.605675 IP 10.0.0.34.http > 10.0.0.26.39104: Flags [.], ack 88, win 227, options [nop,nop,TS val 2413311732 ecr 2876589760], length 0
+1546060687.605683 IP 10.0.0.26.39110 > 10.0.0.34.http: Flags [F.], seq 88, ack 11597, win 410, options [nop,nop,TS val 2876589760 ecr 2413311732], length 0
+1546060687.605729 IP 10.0.0.26.39112 > 10.0.0.34.http: Flags [S], seq 2318223599, win 29200, options [mss 1460,sackOK,TS val 2876589760 ecr 0,nop,wscale 7], length 0
+1546060687.605790 IP 10.0.0.34.http > 10.0.0.26.39110: Flags [.], ack 89, win 227, options [nop,nop,TS val 2413311732 ecr 2876589760], length 0
+1546060687.605853 IP 10.0.0.34.http > 10.0.0.26.39108: Flags [.], ack 88, win 227, options [nop,nop,TS val 2413311732 ecr 2876589760], length 0
+1546060687.605981 IP 10.0.0.34.http > 10.0.0.26.39102: Flags [.], seq 1:5625, ack 88, win 227, options [nop,nop,TS val 2413311732 ecr 2876589760], length 5624: HTTP: HTTP/1.1 200 OK
+1546060687.605985 IP 10.0.0.34.http > 10.0.0.26.39104: Flags [.], seq 1:5625, ack 88, win 227, options [nop,nop,TS val 2413311732 ecr 2876589760], length 5624: HTTP: HTTP/1.1 200 OK
+1546060687.605996 IP 10.0.0.26.39104 > 10.0.0.34.http: Flags [.], ack 5625, win 316, options [nop,nop,TS val 2876589760 ecr 2413311732], length 0
+1546060687.605998 IP 10.0.0.26.39102 > 10.0.0.34.http: Flags [.], ack 5625, win 316, options [nop,nop,TS val 2876589760 ecr 2413311732], length 0
+1546060687.606016 IP 10.0.0.34.http > 10.0.0.26.39104: Flags [.], seq 5625:11249, ack 88, win 227, options [nop,nop,TS val 2413311732 ecr 2876589760], length 5624: HTTP
+1546060687.606019 IP 10.0.0.34.http > 10.0.0.26.39102: Flags [.], seq 5625:8437, ack 88, win 227, options [nop,nop,TS val 2413311732 ecr 2876589760], length 2812: HTTP
+1546060687.606026 IP 10.0.0.26.39102 > 10.0.0.34.http: Flags [.], ack 8437, win 360, options [nop,nop,TS val 2876589760 ecr 2413311732], length 0
+1546060687.606033 IP 10.0.0.34.http > 10.0.0.26.39108: Flags [.], seq 1:8437, ack 88, win 227, options [nop,nop,TS val 2413311732 ecr 2876589760], length 8436: HTTP: HTTP/1.1 200 OK
+1546060687.606029 IP 10.0.0.26.39104 > 10.0.0.34.http: Flags [.], ack 11249, win 404, options [nop,nop,TS val 2876589760 ecr 2413311732], length 0
+1546060687.606038 IP 10.0.0.26.39108 > 10.0.0.34.http: Flags [.], ack 8437, win 360, options [nop,nop,TS val 2876589760 ecr 2413311732], length 0
+1546060687.606040 IP 10.0.0.34.http > 10.0.0.26.39104: Flags [P.], seq 11249:11596, ack 88, win 227, options [nop,nop,TS val 2413311732 ecr 2876589760], length 347: HTTP
+1546060687.606045 IP 10.0.0.26.39104 > 10.0.0.34.http: Flags [.], ack 11596, win 426, options [nop,nop,TS val 2876589760 ecr 2413311732], length 0
+1546060687.606055 IP 10.0.0.34.http > 10.0.0.26.39108: Flags [P.], seq 8437:11596, ack 88, win 227, options [nop,nop,TS val 2413311732 ecr 2876589760], length 3159: HTTP
+1546060687.606062 IP 10.0.0.26.39108 > 10.0.0.34.http: Flags [.], ack 11596, win 410, options [nop,nop,TS val 2876589760 ecr 2413311732], length 0
+1546060687.606077 IP 10.0.0.34.http > 10.0.0.26.39108: Flags [F.], seq 11596, ack 88, win 227, options [nop,nop,TS val 2413311732 ecr 2876589760], length 0
+1546060687.606086 IP 10.0.0.34.http > 10.0.0.26.39102: Flags [.], seq 8437:11249, ack 88, win 227, options [nop,nop,TS val 2413311732 ecr 2876589760], length 2812: HTTP
+1546060687.606091 IP 10.0.0.26.39102 > 10.0.0.34.http: Flags [.], ack 11249, win 404, options [nop,nop,TS val 2876589760 ecr 2413311732], length 0
+1546060687.606093 IP 10.0.0.34.http > 10.0.0.26.39104: Flags [F.], seq 11596, ack 88, win 227, options [nop,nop,TS val 2413311732 ecr 2876589760], length 0
+1546060687.606107 IP 10.0.0.34.http > 10.0.0.26.39106: Flags [.], seq 1:8437, ack 88, win 227, options [nop,nop,TS val 2413311732 ecr 2876589760], length 8436: HTTP: HTTP/1.1 200 OK
+1546060687.606113 IP 10.0.0.26.39106 > 10.0.0.34.http: Flags [.], ack 8437, win 360, options [nop,nop,TS val 2876589760 ecr 2413311732], length 0
+1546060687.606158 IP 10.0.0.34.http > 10.0.0.26.39102: Flags [FP.], seq 11249:11596, ack 88, win 227, options [nop,nop,TS val 2413311732 ecr 2876589760], length 347: HTTP
+1546060687.606181 IP 10.0.0.26.39104 > 10.0.0.34.http: Flags [F.], seq 88, ack 11597, win 426, options [nop,nop,TS val 2876589760 ecr 2413311732], length 0
+1546060687.606192 IP 10.0.0.34.http > 10.0.0.26.39106: Flags [P.], seq 8437:11596, ack 88, win 227, options [nop,nop,TS val 2413311732 ecr 2876589760], length 3159: HTTP
+1546060687.606197 IP 10.0.0.26.39106 > 10.0.0.34.http: Flags [.], ack 11596, win 410, options [nop,nop,TS val 2876589760 ecr 2413311732], length 0
+1546060687.606229 IP 10.0.0.34.http > 10.0.0.26.39104: Flags [.], ack 89, win 227, options [nop,nop,TS val 2413311732 ecr 2876589760], length 0
+1546060687.606238 IP 10.0.0.34.http > 10.0.0.26.39106: Flags [F.], seq 11596, ack 88, win 227, options [nop,nop,TS val 2413311732 ecr 2876589760], length 0
+1546060687.606249 IP 10.0.0.26.39114 > 10.0.0.34.http: Flags [S], seq 1176899387, win 29200, options [mss 1460,sackOK,TS val 2876589760 ecr 0,nop,wscale 7], length 0
+1546060687.606266 IP 10.0.0.26.39108 > 10.0.0.34.http: Flags [F.], seq 88, ack 11597, win 410, options [nop,nop,TS val 2876589760 ecr 2413311732], length 0
+1546060687.606287 IP 10.0.0.26.39116 > 10.0.0.34.http: Flags [S], seq 1517964983, win 29200, options [mss 1460,sackOK,TS val 2876589760 ecr 0,nop,wscale 7], length 0
+1546060687.606302 IP 10.0.0.26.39102 > 10.0.0.34.http: Flags [F.], seq 88, ack 11597, win 426, options [nop,nop,TS val 2876589760 ecr 2413311732], length 0
+1546060687.606319 IP 10.0.0.26.39118 > 10.0.0.34.http: Flags [S], seq 1495375953, win 29200, options [mss 1460,sackOK,TS val 2876589760 ecr 0,nop,wscale 7], length 0
+1546060687.606330 IP 10.0.0.34.http > 10.0.0.26.39108: Flags [.], ack 89, win 227, options [nop,nop,TS val 2413311733 ecr 2876589760], length 0
+1546060687.606351 IP 10.0.0.34.http > 10.0.0.26.39102: Flags [.], ack 89, win 227, options [nop,nop,TS val 2413311733 ecr 2876589760], length 0
+1546060687.606361 IP 10.0.0.26.39106 > 10.0.0.34.http: Flags [F.], seq 88, ack 11597, win 410, options [nop,nop,TS val 2876589760 ecr 2413311732], length 0
+1546060687.606445 IP 10.0.0.34.http > 10.0.0.26.39106: Flags [.], ack 89, win 227, options [nop,nop,TS val 2413311733 ecr 2876589760], length 0
+1546060687.606481 IP 10.0.0.26.39120 > 10.0.0.34.http: Flags [S], seq 2507100855, win 29200, options [mss 1460,sackOK,TS val 2876589761 ecr 0,nop,wscale 7], length 0
+1546060687.608989 IP 10.0.0.34.http > 10.0.0.26.39112: Flags [S.], seq 534297639, ack 2318223600, win 28960, options [mss 1418,sackOK,TS val 2413311733 ecr 2876589760,nop,wscale 7], length 0
+1546060687.609021 IP 10.0.0.26.39112 > 10.0.0.34.http: Flags [.], ack 1, win 229, options [nop,nop,TS val 2876589763 ecr 2413311733], length 0
+1546060687.609072 IP 10.0.0.26.39112 > 10.0.0.34.http: Flags [P.], seq 1:88, ack 1, win 229, options [nop,nop,TS val 2876589763 ecr 2413311733], length 87: HTTP: GET /index.html HTTP/1.0
+1546060687.609168 IP 10.0.0.34.http > 10.0.0.26.39112: Flags [.], ack 88, win 227, options [nop,nop,TS val 2413311735 ecr 2876589763], length 0
+1546060687.609199 IP 10.0.0.34.http > 10.0.0.26.39114: Flags [S.], seq 2131940618, ack 1176899388, win 28960, options [mss 1418,sackOK,TS val 2413311733 ecr 2876589760,nop,wscale 7], length 0
+1546060687.609225 IP 10.0.0.26.39114 > 10.0.0.34.http: Flags [.], ack 1, win 229, options [nop,nop,TS val 2876589763 ecr 2413311733], length 0
+1546060687.609271 IP 10.0.0.26.39114 > 10.0.0.34.http: Flags [P.], seq 1:88, ack 1, win 229, options [nop,nop,TS val 2876589763 ecr 2413311733], length 87: HTTP: GET /index.html HTTP/1.0
+1546060687.609377 IP 10.0.0.34.http > 10.0.0.26.39120: Flags [S.], seq 1171487483, ack 2507100856, win 28960, options [mss 1418,sackOK,TS val 2413311734 ecr 2876589761,nop,wscale 7], length 0
+1546060687.609401 IP 10.0.0.26.39120 > 10.0.0.34.http: Flags [.], ack 1, win 229, options [nop,nop,TS val 2876589763 ecr 2413311734], length 0
+1546060687.609432 IP 10.0.0.34.http > 10.0.0.26.39114: Flags [.], ack 88, win 227, options [nop,nop,TS val 2413311736 ecr 2876589763], length 0
+1546060687.609433 IP 10.0.0.26.39120 > 10.0.0.34.http: Flags [P.], seq 1:88, ack 1, win 229, options [nop,nop,TS val 2876589763 ecr 2413311734], length 87: HTTP: GET /index.html HTTP/1.0
+1546060687.609507 IP 10.0.0.34.http > 10.0.0.26.39120: Flags [.], ack 88, win 227, options [nop,nop,TS val 2413311736 ecr 2876589763], length 0
+1546060687.609534 IP 10.0.0.34.http > 10.0.0.26.39118: Flags [S.], seq 3502120453, ack 1495375954, win 28960, options [mss 1418,sackOK,TS val 2413311734 ecr 2876589760,nop,wscale 7], length 0
+1546060687.609556 IP 10.0.0.26.39118 > 10.0.0.34.http: Flags [.], ack 1, win 229, options [nop,nop,TS val 2876589764 ecr 2413311734], length 0
+1546060687.609585 IP 10.0.0.26.39118 > 10.0.0.34.http: Flags [P.], seq 1:88, ack 1, win 229, options [nop,nop,TS val 2876589764 ecr 2413311734], length 87: HTTP: GET /index.html HTTP/1.0
+1546060687.609648 IP 10.0.0.34.http > 10.0.0.26.39118: Flags [.], ack 88, win 227, options [nop,nop,TS val 2413311736 ecr 2876589764], length 0
+1546060687.609889 IP 10.0.0.34.http > 10.0.0.26.39118: Flags [.], seq 1:7031, ack 88, win 227, options [nop,nop,TS val 2413311736 ecr 2876589764], length 7030: HTTP: HTTP/1.1 200 OK
+1546060687.609904 IP 10.0.0.26.39118 > 10.0.0.34.http: Flags [.], ack 7031, win 338, options [nop,nop,TS val 2876589764 ecr 2413311736], length 0
+1546060687.609921 IP 10.0.0.34.http > 10.0.0.26.39118: Flags [P.], seq 7031:11596, ack 88, win 227, options [nop,nop,TS val 2413311736 ecr 2876589764], length 4565: HTTP
+1546060687.609932 IP 10.0.0.26.39118 > 10.0.0.34.http: Flags [.], ack 11596, win 410, options [nop,nop,TS val 2876589764 ecr 2413311736], length 0
+1546060687.609935 IP 10.0.0.34.http > 10.0.0.26.39118: Flags [F.], seq 11596, ack 88, win 227, options [nop,nop,TS val 2413311736 ecr 2876589764], length 0
+1546060687.609967 IP 10.0.0.26.39118 > 10.0.0.34.http: Flags [F.], seq 88, ack 11597, win 410, options [nop,nop,TS val 2876589764 ecr 2413311736], length 0
+1546060687.610003 IP 10.0.0.26.39122 > 10.0.0.34.http: Flags [S], seq 3978721707, win 29200, options [mss 1460,sackOK,TS val 2876589764 ecr 0,nop,wscale 7], length 0
+1546060687.610022 IP 10.0.0.34.http > 10.0.0.26.39118: Flags [.], ack 89, win 227, options [nop,nop,TS val 2413311736 ecr 2876589764], length 0
+1546060687.610135 IP 10.0.0.34.http > 10.0.0.26.39116: Flags [S.], seq 32582395, ack 1517964984, win 28960, options [mss 1418,sackOK,TS val 2413311734 ecr 2876589760,nop,wscale 7], length 0
+1546060687.610157 IP 10.0.0.26.39116 > 10.0.0.34.http: Flags [.], ack 1, win 229, options [nop,nop,TS val 2876589764 ecr 2413311734], length 0
+1546060687.610189 IP 10.0.0.34.http > 10.0.0.26.39112: Flags [P.], seq 1:11596, ack 88, win 227, options [nop,nop,TS val 2413311736 ecr 2876589763], length 11595: HTTP: HTTP/1.1 200 OK
+1546060687.610192 IP 10.0.0.26.39116 > 10.0.0.34.http: Flags [P.], seq 1:88, ack 1, win 229, options [nop,nop,TS val 2876589764 ecr 2413311734], length 87: HTTP: GET /index.html HTTP/1.0
+1546060687.610198 IP 10.0.0.26.39112 > 10.0.0.34.http: Flags [.], ack 11596, win 410, options [nop,nop,TS val 2876589764 ecr 2413311736], length 0
+1546060687.610356 IP 10.0.0.34.http > 10.0.0.26.39116: Flags [.], ack 88, win 227, options [nop,nop,TS val 2413311737 ecr 2876589764], length 0
+1546060687.611371 IP 10.0.0.34.http > 10.0.0.26.39122: Flags [S.], seq 1947000788, ack 3978721708, win 28960, options [mss 1418,sackOK,TS val 2413311737 ecr 2876589764,nop,wscale 7], length 0
+1546060687.611389 IP 10.0.0.26.39122 > 10.0.0.34.http: Flags [.], ack 1, win 229, options [nop,nop,TS val 2876589765 ecr 2413311737], length 0

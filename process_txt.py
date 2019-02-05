@@ -39,6 +39,10 @@ def float_from_timestamp(timestamp, decimal_figs=9):
 
     if len(float_part) < decimal_figs:
         float_part = ("0" * (decimal_figs - len(float_part))) + float_part
+    if decimal_figs < len(float_part):
+        print "Expecting to find ", decimal_figs, "figures"
+        print "But found ", len(float_part), "figures"
+        sys.exit(1)
 
     return float(int_part + "." + float_part)
 

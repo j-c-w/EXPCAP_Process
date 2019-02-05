@@ -25,11 +25,7 @@ if __name__ == "__main__":
     temp_text_generated = False
 
     if pcap_file.endswith('.pcap'):
-        command = ['./field_from_pcap.sh', pcap_file, pcap_file + '.txt', '', '-tt']
-        if args.packets:
-            command += ['-c', str(args.packets)]
-        result = subprocess.call(command)
-        pcap_file = pcap_file + '.txt'
+        pcap_file = process_txt.create_txt_from_pcap(pcap_file)
         temp_text_generated = True
 
     # Now, draw the graph.

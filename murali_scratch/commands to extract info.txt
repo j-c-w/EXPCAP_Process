@@ -4,5 +4,5 @@
 # timestamp is in microseconds, the amount of time between one packet and the next. 
 # this there are few packets but not shown due to the dst filter, this is properly accounted for by the ttt flag. 
 # for example, packet1, packet2 and packet3 are there. but packet2 is hidden due to dst filter. in this case, time #timestamp retrieved with packet3 is the correct packet3-packet1 timestamp.
-
+# 70 seconds on ~110GB pcap file
 tcpdump -ttt -r client_05_1.cap -c 10 -q  dst 10.0.0.26 |  cut -d' ' -f 2,8

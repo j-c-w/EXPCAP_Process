@@ -40,6 +40,8 @@ if __name__ == "__main__":
     print "Deviation is ", np.std(timestamp_deltas)
 
     plt.hist(timestamp_deltas, bins=args.bins)
+    plt.ylabel("Number of Packets")
+    plt.xlabel("Inter-arrival time (ns)")
     plt.savefig(pcap_file + '_interarrival.eps', format='eps')
 
     if temp_text_generated and not args.keep_temps:

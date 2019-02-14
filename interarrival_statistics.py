@@ -2,6 +2,7 @@ import argparse
 import numpy as np
 import os
 import process_txt
+import process_pcap
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -10,16 +11,10 @@ if __name__ == "__main__":
     args = parser.parse_args()
     file = args.file
 
-    delete_when_done = False
     if file.endswith('.pcap'):
-        process_txt.create_txt_from_pcap(file)
-        file = file + '.txt'
-        delete_when_done = True
-
-    times = process_txt.extract_deltas(file)
+        times = process_pcap.extract_deltas(file)
+    else:
+        times = process_txt.extract_deltas(file)
 
     print "Mean delta: ", np.mean(times), ", Median delta: ", np.median(times),
     print ", deviation: ", np.std(times)
-
-    if delete_when_done:
-        os.remove(file)

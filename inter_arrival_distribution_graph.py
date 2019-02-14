@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 import process_txt
+import process_pcap
 import subprocess
 
 if __name__ == "__main__":
@@ -20,16 +21,12 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     pcap_file = args.input_file
-    # If we generate the text file, we should delete it
-    # when we are done.
-    temp_text_generated = False
 
     if pcap_file.endswith('.pcap'):
-        pcap_file = process_txt.create_txt_from_pcap(pcap_file)
-        temp_text_generated = True
+        timestamp_deltas = process_pcap.extract_deltas(pcap_files)
+    else:
+        timestamp_deltas = process_txt.extract_deltas(pcap_file)
 
-    # Now, draw the graph.
-    timestamp_deltas = process_txt.extract_deltas(pcap_file)
     # Convert to ns before starting:
     for i in range(len(timestamp_deltas)):
         timestamp_deltas[i] = 1000000000.0 * timestamp_deltas[i]
@@ -43,7 +40,3 @@ if __name__ == "__main__":
     plt.ylabel("Number of Packets")
     plt.xlabel("Inter-arrival time (ns)")
     plt.savefig(pcap_file + '_interarrival.eps', format='eps')
-
-    if temp_text_generated and not args.keep_temps:
-        os.remove(pcap_file)
-

@@ -1,6 +1,6 @@
 import argparse
 import numpy as np
-import os
+import process_csv
 import process_txt
 import process_pcap
 
@@ -13,6 +13,8 @@ if __name__ == "__main__":
 
     if file.endswith('.pcap'):
         times = process_pcap.extract_deltas(file)
+    elif file.endswith('.csv'):
+        times = process_csv.extract_deltas(file)
     else:
         times = process_txt.extract_deltas(file)
 

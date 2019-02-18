@@ -4,6 +4,7 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import numpy as np
 import os
+import process_csv
 import process_txt
 import process_pcap
 import subprocess
@@ -22,6 +23,8 @@ if __name__ == "__main__":
     input_file = args.input_file
     if input_file.endswith('.pcap'):
         arrival_times = process_pcap.extract_times(input_file)
+    elif input_file.endswith('.csv'):
+        arrival_times = process_csv.extract_times(input_file)
     else:
         arrival_times = process_txt.extract_times(input_file)
     x_values = range(0, len(arrival_times))

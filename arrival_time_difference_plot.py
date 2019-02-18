@@ -4,6 +4,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 import os
+import process_csv
 import process_txt
 import process_pcap
 import sys
@@ -20,14 +21,17 @@ if __name__ == "__main__":
 
     if args.first_file.endswith('.pcap'):
         first_times = np.array(process_pcap.extract_times(first_file))
+    elif args.first_file.endswith('.csv'):
+        first_times = np.array(process_csv.extract_times(first_file))
     else:
         first_times = np.array(process_txt.extract_times(first_file))
 
     if args.second_file.endswith('.pcap'):
         second_times = np.array(process_pcap.extract_times(second_file))
+    elif args.second_file.endswith('.csv'):
+        second_times = np.array(process_csv.extract_times(second_file))
     else:
         second_times = np.array(process_txt.extract_times(second_file))
-
 
     if len(first_times) != len(second_times):
         print "Error: There are a different number of packets in each trace"

@@ -3,10 +3,9 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import numpy as np
-import os
+import process_csv
 import process_txt
 import process_pcap
-import subprocess
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -23,7 +22,9 @@ if __name__ == "__main__":
     pcap_file = args.input_file
 
     if pcap_file.endswith('.pcap'):
-        timestamp_deltas = process_pcap.extract_deltas(pcap_files)
+        timestamp_deltas = process_pcap.extract_deltas(pcap_file)
+    elif pcap_file.endswith('.csv'):
+        timestamp_deltas = process_csv.extract_deltas(pcap_file)
     else:
         timestamp_deltas = process_txt.extract_deltas(pcap_file)
 

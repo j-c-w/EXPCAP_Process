@@ -32,7 +32,7 @@ if __name__ == "__main__":
     last_time = 0
     for index in range(len(arrival_times)):
         time = arrival_times[index]
-        if time < last_time:
+        if time <= last_time:
             print "have time ", time, "at line ", index
         last_time = time
 

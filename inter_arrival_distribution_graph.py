@@ -41,3 +41,4 @@ if __name__ == "__main__":
     plt.ylabel("Number of Packets")
     plt.xlabel("Inter-arrival time (ns)")
     plt.savefig(pcap_file + '_interarrival.eps', format='eps')
+    print "Done! File is in ", pcap_file + '_interarrival.eps'

@@ -36,6 +36,7 @@ if __name__ == "__main__":
             print "have time ", time, "at line ", index
         last_time = time
 
+    arrival_times = np.asarray(arrival_times, dtype='float')
     plt.plot(x_values, arrival_times)
     plt.title("Arrival time")
     plt.xlabel("Packet number")

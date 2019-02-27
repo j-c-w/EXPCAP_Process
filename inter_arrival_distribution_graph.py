@@ -36,6 +36,7 @@ if __name__ == "__main__":
     print "Range is ", range
     print "Median is ", np.median(timestamp_deltas)
     print "Deviation is ", np.std(timestamp_deltas)
+    timestamp_deltas = np.asarray(timestamp_deltas, dtype='float')
 
     plt.hist(timestamp_deltas, bins=args.bins)
     plt.ylabel("Number of Packets")

@@ -1,4 +1,4 @@
-
+from decimal import *
 
 def extract_times(filename, column=7, count=None):
     times = []
@@ -10,12 +10,12 @@ def extract_times(filename, column=7, count=None):
             lines = f.readlines()[1:]
         last_time = -1.0
         for line in lines:
-            time = float(line.split(",")[column])
+            time = line.split(",")[column]
             # There is a bug in the HPT setup which
             # means that invalid packets sometimes
             # appear.
             if time != last_time:
-                times.append(time)
+                times.append(Decimal(time))
             last_time = time
     return times
 

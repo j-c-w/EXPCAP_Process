@@ -34,6 +34,8 @@ if __name__ == "__main__":
         second_times = np.array(process_txt.extract_times(second_file))
 
     if len(first_times) != len(second_times):
+        print len(first_times), "in first trace"
+        print len(second_times), "in second trace"
         print "Error: There are a different number of packets in each trace"
         sys.exit(1)
 
@@ -42,13 +44,16 @@ if __name__ == "__main__":
     diffs = first_times - second_times
     # Convert to ns:
     diffs = diffs * (10 ** 9)
+    # Convert to floats so they can be plotted.
+    diffs = np.asarray(diffs, dtype='float')
     print "Plottiong ", len(diffs), "packets"
-    print diffs
+    print min(diffs), max(diffs)
     plt.hist(diffs, bins=60)
     plt.title("Difference Between arrival times")
     plt.xlabel("Difference (ns)")
     plt.ylabel("Frequency")
-    plt.xlim([min(diffs), max(diffs)])
     plt.tight_layout()
-    plt.savefig(os.path.basename(first_file) + '_diff_' + \
-            os.path.basename(second_file) + '.eps')
+    filename = os.path.basename(first_file) + '_diff_' + \
+        os.path.basename(second_file) + '.eps'
+    plt.savefig(filename)
+    print "Figure saved in ", filename

@@ -1,0 +1,38 @@
+import argparse
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import numpy as np
+import process_csv
+import process_txt
+import process_pcap
+import expcap_metadata
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument('input_file')
+    parser.add_argument('--bins', type=int, dest='bins', help="Number of bins", default=30)
+    parser.add_argument('--keep-temps', dest='keep_temps', default=False, action='store_true', help="Keep temp files")
+    # This is to avoid issues with tcpdump hanging.
+    parser.add_argument('--packets', type=int, required=False,
+            default=None, dest='packets',
+            help="Number of packets to process from a pcap file")
+
+    args = parser.parse_args()
+
+    pcap_file = args.input_file
+
+    if pcap_file.endswith('.csv'):
+        packet_sizes = process_csv.extract_sizes(pcap_file)
+
+    range = [min(packet_sizes), max(packet_sizes)]
+    print "Range is ", range
+    print "Median is ", np.median(packet_sizes)
+    print "Deviation is ", np.std(packet_sizes)
+    packet_sizes = np.asarray(packet_sizes)
+
+    plt.hist(packet_sizes, bins=args.bins)
+    plt.ylabel("Number of Packets")
+    plt.xlabel("Sizes (B)")
+    plt.savefig(pcap_file + '_sizes.eps', format='eps')
+    print "Done! File is in ", pcap_file + '_sizes.eps'

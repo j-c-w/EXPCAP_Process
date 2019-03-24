@@ -1,4 +1,23 @@
 from decimal import *
+from expcap_metadata import ExpcapPacket
+
+
+def extract_sizes(filename, count=None):
+    with open(filename) as f:
+        if count:
+            lines = f.readlines()[1:count]
+        else:
+            lines = f.readlines()[1:]
+
+        sizes = []
+        for line in lines:
+            expcap_packet = ExpcapPacket(line)
+            if expcap_packet.padding_packet:
+                continue
+            sizes.append(expcap_packet.length)
+
+        return sizes
+
 
 def extract_times(filename, column=7, count=None):
     times = []

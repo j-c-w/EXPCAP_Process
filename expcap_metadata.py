@@ -6,6 +6,10 @@ SECOND_PER_BYTE_WIRE = Decimal(8.0 / 10000000000.0)
 
 class ExpcapPacket(object):
     def __init__(self, input_string):
+        # This can be used to check if all the fields have
+        # been filled in, e.g. in the case of a non-IP packet
+        # they won't  be.
+        self.fully_processed_ip = False
         # Split the packet up.
         input_string = input_string.split(',')
         self.number = int(input_string[0])
@@ -14,26 +18,10 @@ class ExpcapPacket(object):
         # This isn't the full length: it's the length
         # of the packet as visible to IP (I think?)
         self.length = len(self.packet_data) / 2
-        # 24 is 8 preamble, 12 trailer, 4 FCS.
+        # 24 is 8 preamble, 12 trailer, 4 FCS.  Assuming Ethernet here.
         self.preamble_length = 8.0
         self.trailer_length = 16.0
         self.wire_length = self.length + 24.0
-        self.ethertype = self.packet_data[24:28]
-        if self.ethertype == "ffff":
-            print "Expcap format packet: do not use."
-            self.padding_packet = True
-            return
-        else:
-            self.padding_packet = False
-        if self.ethertype != '0800':
-            print "Error: Packet with unsupported ethertype"
-            print input_string
-            print self.ethertype
-            return
-
-        # And the IP Source and destination addresses.
-        self.src_addr = self.packet_data[52:60]
-        self.dst_addr = self.packet_data[60:68]
 
         # Calculate the end time assuming a 10G link.
         self.start_time = self.arrival_time
@@ -44,6 +32,25 @@ class ExpcapPacket(object):
 
         self.length_time = self.end_time - self.start_time
         self.wire_length_time = self.wire_end_time - self.wire_start_time
+
+        self.ethertype = self.packet_data[24:28]
+        if self.ethertype == "ffff":
+            print "Expcap format packet: do not use."
+            self.padding_packet = True
+            return
+        else:
+            self.padding_packet = False
+
+        if self.ethertype != '0800':
+            print "Error: Packet with unsupported ethertype"
+            print input_string
+            print self.ethertype
+            return
+
+        # And the IP Source and destination addresses.
+        self.src_addr = self.packet_data[52:60]
+        self.dst_addr = self.packet_data[60:68]
+        self.fully_processed_ip = True
 
 
 if __name__ == "__main__":

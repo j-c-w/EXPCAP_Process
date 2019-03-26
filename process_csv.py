@@ -13,7 +13,7 @@ def extract_expcap_metadatas(filename, count=None):
         metadata = []
         for line in lines:
             expcap_packet = ExpcapPacket(line)
-            if expcap_packet.padding_packet:
+            if expcap_packet.padding_packet or not expcap_packet.fully_processed_ip:
                 continue
             metadata.append(expcap_packet)
 
@@ -71,7 +71,7 @@ def extract_bandwidths(filename, window_size, count=None):
 
     # Find the number of iterations we need in the loop.
     iterations = int((end_time - start_time) / window_size)
-    if debug
+    if debug:
         print iterations
     # Also, we need to keep the number of windows accurate, so throw away
     # any slice of time that doesn't fit exactly.

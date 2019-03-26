@@ -25,8 +25,13 @@ if __name__ == "__main__":
 
     if pcap_file.endswith('.csv'):
         x_values, bandwidths = process_csv.extract_bandwidths(pcap_file, window_size)
+    # Recenter the xvalues around zero.
+    zero_value = x_values[0][0]
+    for i in range(len(x_values)):
+        x_values[i] = x_values[i][0] - zero_value
+
     plt.plot(x_values, bandwidths)
-    plt.ylabel("Time")
-    plt.xlabel("Bandwidth Used Mbps")
+    plt.xlabel("Time")
+    plt.ylabel("Bandwidth Used Mbps")
     plt.savefig(pcap_file + '_bandwidth.eps', format='eps')
     print "Done! File is in ", pcap_file + '_bandwidth.eps'

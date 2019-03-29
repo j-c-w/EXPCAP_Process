@@ -11,7 +11,6 @@ import expcap_metadata
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('input_file')
-    parser.add_argument('--bins', type=int, dest='bins', help="Number of bins", default=30)
     parser.add_argument('--keep-temps', dest='keep_temps', default=False, action='store_true', help="Keep temp files")
     # This is to avoid issues with tcpdump hanging.
     parser.add_argument('--packets', type=int, required=False,
@@ -31,8 +30,9 @@ if __name__ == "__main__":
     print "Deviation is ", np.std(packet_sizes)
     packet_sizes = np.asarray(packet_sizes)
 
-    plt.hist(packet_sizes, bins=args.bins)
-    plt.ylabel("Number of Packets")
+    bins = 1000
+    plt.hist(packet_sizes, bins=bins, cumulative=True, histtype='step', normed=True)
+    plt.ylabel("Fraction of Packets")
     plt.xlabel("Sizes (B)")
     plt.savefig(pcap_file + '_sizes.eps', format='eps')
     print "Done! File is in ", pcap_file + '_sizes.eps'

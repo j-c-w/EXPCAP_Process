@@ -30,6 +30,20 @@ def extract_sizes(filename, count=None):
     return sizes
 
 
+def extract_ipgs(filename, count=None):
+    metadatas = extract_expcap_metadatas(filename, count=count)
+    ipgs = []
+    if len(metadatas) < 2:
+        return []
+    last_end = metadatas[0].wire_end_time
+
+    for expcap_packet in metadatas[1:]:
+        ipgs.append(expcap_packet.wire_end_time - last_end)
+        last_end = expcap_packet.wire_end_time
+
+    return ipgs
+
+
 def extract_times(filename, column=7, count=None):
     times = []
     with open(filename) as f:
@@ -55,13 +69,19 @@ This function takes a filename that represents a CSV file.  The CSV file
 should contain Expcap formatted packets.  TBH it could be extended to work
 with any capture format that can present the same interface that's present
 in expcap metadata.
+
+It returns a pair.  The first element of the pair is a list
+of windows.  The second element of the pair is a list of tupes.
+The first element of each tuple is what fraction of
+each packet it within the window.  The second element
+of each tuple is the packet.
 """
-def extract_bandwidths(filename, window_size, count=None):
+def extract_windows(filename, window_size, count=None):
     # Note that window_size is in pico seconds, so convert to seconds
     window_size = Decimal(window_size) / Decimal(1000000000000)
     expcap_metadatas = extract_expcap_metadatas(filename, count)
-    debug = True
-    usages = []
+    debug = False
+    packet_groups = []
     windows = []
     
     # First, get the start and end time.  Note that the
@@ -99,19 +119,19 @@ def extract_bandwidths(filename, window_size, count=None):
         # packets.  There are edge cases at the start
         # and end.
 
-        time_filled = Decimal(0.0)
+        packets_in_window = []
         if expcap_metadatas[packet_start_index].wire_end_time < window_start:
             # The packet is entirely before the start of the window.
             pass
         elif expcap_metadatas[packet_start_index].wire_start_time < window_start:
             # The packet starts before the window, so chop that off.
-            time_filled += \
-                    expcap_metadatas[packet_start_index].wire_end_time - window_start
+            fraction_in_window = (window_start - expcap_metadatas[packet_start_index].wire_start_time) / expcap_metadatas[packet_start_index].wire_length_time
+            packets_in_window.append((fraction_in_window,
+                                      expcap_metadatas[packet_start_index]))
             if debug:
                 print "wire end time first packet"
         else:
-            time_filled += \
-                    expcap_metadatas[packet_start_index].wire_length_time
+            packets_in_window.append((Decimal(1.0), expcap_metadatas[packet_start_index]))
             if debug:
                 print "wire length time first packet"
 
@@ -119,9 +139,8 @@ def extract_bandwidths(filename, window_size, count=None):
         # in the calculation because it may be chopped out of the region.
         for index in range(packet_start_index + 1, packet_end_index):
             # These packets will be entirely in the window, so
-            # add their entire length to the filled section.
-            time_filled += \
-                    expcap_metadatas[index].wire_length_time
+            # they fraction 1.0 in the window
+            packets_in_window.append((Decimal(1.0), expcap_metadatas[index]))
 
         # The last packet might only be partially in the window.
         if expcap_metadatas[packet_end_index].wire_start_time >  window_end:
@@ -130,25 +149,54 @@ def extract_bandwidths(filename, window_size, count=None):
         elif expcap_metadatas[packet_end_index].wire_end_time > window_end:
             if debug:
                 print "wire start time last packet"
-            time_filled += \
-                    window_end - expcap_metadatas[packet_end_index].wire_start_time
+            fraction_in_window = (expcap_metadatas[packet_end_index].wire_end_time - window_end) / expcap_metadatas[packet_end_index].wire_length_time
+            packets_in_window.append((fraction_in_window, expcap_metadatas[packet_end_index]))
         else:
             if debug:
                 print "Wire length time last packet"
-            time_filled += expcap_metadatas[packet_end_index].wire_length_time
+            packets_in_window.append((Decimal(1.0), expcap_metadatas[packet_end_index]))
 
         # Make the rate calculation here:
-        if debug:
-            print time_filled
-        link_usage = time_filled / window_size
-        usages.append(link_usage)
+        packet_groups.append(packets_in_window)
         windows.append((window_start, window_end))
 
         # For the next iteration, the starting packet is the same as the last
         # one on this iteration.
         packet_start_index = packet_end_index
 
+    return (windows, packet_groups)
+
+
+def extract_bandwidths(filename, window_size, count=None):
+    (windows, packets) = extract_windows(filename, window_size, count=count)
+
+    usages = []
+    # For each window, go through and sum the total
+    # fraction of time the window is in use.
+    for i in range(len(windows)):
+        (window_start, window_end) = windows[i]
+        total_window_time = window_end - window_start
+        time_used = Decimal(0.0)
+        for (fraction, packet) in packets[i]:
+            time_used += fraction * packet.wire_length_time
+
+        usages.append(time_used / total_window_time)
+
     return (windows, usages)
+
+
+def extract_sizes_by_window(filename, window_size, count=None):
+    (windows, packets) = extract_windows(filename, window_size, count=count)
+
+    sizes = []
+    for packet_window in packets:
+        window_sizes = []
+        for (fraction_in_window, packet) in packet_window:
+            window_sizes.append(packet.length)
+
+        sizes.append(window_sizes)
+
+    return windows, sizes
 
 
 def extract_deltas(filename, column=7):

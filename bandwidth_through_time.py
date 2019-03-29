@@ -33,5 +33,6 @@ if __name__ == "__main__":
     plt.plot(x_values, bandwidths)
     plt.xlabel("Time")
     plt.ylabel("Bandwidth Used Mbps")
-    plt.savefig(pcap_file + '_bandwidth.eps', format='eps')
-    print "Done! File is in ", pcap_file + '_bandwidth.eps'
+    filename = pcap_file + '_bandwidth_window_' + str(window_size) + '.eps'
+    plt.savefig(filename, format='eps')
+    print "Done! File is in ", filename

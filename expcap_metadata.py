@@ -15,9 +15,9 @@ class ExpcapPacket(object):
         self.number = int(input_string[0])
         self.arrival_time = Decimal(input_string[7])
         self.packet_data = input_string[8]
-        # This isn't the full length: it's the length
-        # of the packet as visible to IP (I think?)
-        self.length = len(self.packet_data) / 2
+        # Note: the length of the input string isn't really
+        # representative.  It seems to be trimmed at 64 bytes.
+        self.length = int(input_string[4]) - 4
         # 24 is 8 preamble, 12 trailer, 4 FCS.  Assuming Ethernet here.
         self.preamble_length = 8.0
         self.trailer_length = 16.0

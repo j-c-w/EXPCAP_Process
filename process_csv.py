@@ -40,6 +40,21 @@ def windows_list_from_string(windows_string):
     return windows
 
 
+def generate_cache_name(input_file, name, to_ip, from_ip, count, window_size=None):
+    name = input_file + name
+
+    if to_ip:
+        name = name + '_to_ip_' + to_ip
+    if from_ip:
+        name = name + '_from_ip_' + from_ip
+    if count:
+        name = name + '_packets_' + count
+    if window_size:
+        name = name + '_window_size_' + window_size
+
+    return name + '.cache'
+
+
 def extract_expcap_metadatas(filename, count=None, to_ip=None, from_ip=None):
     global last_loaded
     global last_loaded_from
@@ -90,8 +105,9 @@ def extract_expcap_metadatas(filename, count=None, to_ip=None, from_ip=None):
 
 
 def extract_sizes(filename, count=None, to_ip=None, from_ip=None):
-    if os.exists(filename + '_sizes_list.cache'):
-        with open(filename + '_sizes_list.cache') as f:
+    cache_name = generate_cache_name(filename, '_sizes_list', to_ip, from_ip, count)
+    if os.path.exists(cache_name):
+        with open(cache_name) as f:
             sizes = f.readlines()[0].split(',')
             return [int(size) for size in sizes]
 
@@ -101,7 +117,7 @@ def extract_sizes(filename, count=None, to_ip=None, from_ip=None):
     for expcap_packet in metadatas:
         sizes.append(expcap_packet.length)
 
-    with open(filename + '_sizes_list.cache', 'w') as f:
+    with open(cache_name, 'w') as f:
         f.write(','.join([str(size) for size in sizes]))
     return sizes
 
@@ -144,8 +160,9 @@ def find_bursts(filename, count=None, ipg_threshold=20000, packet_threshold=20, 
 
 
 def extract_ipgs(filename, count=None, to_ip=None, from_ip=None):
-    if os.path.exists(filename + '_ipgs.cache'):
-        with open(filename + '_ipgs.cache') as f:
+    cache_name = generate_cache_name(filename, '_ipgs', to_ip, from_ip, count)
+    if os.path.exists(cache_name):
+        with open(cache_name) as f:
             return [Decimal(x) for x in (f.readlines()[0].split(','))]
     metadatas = extract_expcap_metadatas(filename, count=count, to_ip=to_ip, from_ip=from_ip)
     ipgs = []
@@ -157,7 +174,7 @@ def extract_ipgs(filename, count=None, to_ip=None, from_ip=None):
         ipgs.append(expcap_packet.wire_end_time - last_end)
         last_end = expcap_packet.wire_end_time
 
-    with open(filename + '_ipgs.cache', 'w') as f:
+    with open(cache_name, 'w') as f:
         f.write(','.join([str(ipg) for ipg in ipgs]))
 
     return ipgs
@@ -166,8 +183,9 @@ def extract_ipgs(filename, count=None, to_ip=None, from_ip=None):
 def extract_times(filename, column=7, count=None, to_ip=None, from_ip=None):
     times = []
 
-    if os.path.exists(filename + '_times.cache'):
-        with open(filename + '_times.cache') as f:
+    cache_name = generate_cache_name(filename, '_times', to_ip, from_ip, count)
+    if os.path.exists(cache_name):
+        with open(cache_name) as f:
             return [Decimal(x) for x in (f.readlines()[0].split(','))]
 
     expcap_metadatas = \
@@ -176,7 +194,7 @@ def extract_times(filename, column=7, count=None, to_ip=None, from_ip=None):
     for expcap in expcap_metadatas:
         times.append(expcap.wire_start_time)
 
-    with open(filename + '_times.cache', 'w') as f:
+    with open(cache_name, 'w') as f:
         f.write(','.join([str(time) for time in times]))
 
     return times
@@ -290,9 +308,9 @@ def extract_windows(filename, window_size, count=None, to_ip=None, from_ip=None)
 
 
 def extract_bandwidths(filename, window_size, count=None, to_ip=None, from_ip=None):
-    cache_file = filename + '_bandwidths_' + str(window_size) + '.cache'
-    if os.path.exists(cache_file):
-        with open(cache_file) as f:
+    cache_name = generate_cache_name(filename, '_bandwidths', to_ip, from_ip, count, window_size=str(window_size))
+    if os.path.exists(cache_name):
+        with open(cache_name) as f:
             lines = f.readlines()
             windows = windows_list_from_string(lines[0])
             usages = [Decimal(x) for x in (lines[1].split(','))]
@@ -314,7 +332,7 @@ def extract_bandwidths(filename, window_size, count=None, to_ip=None, from_ip=No
 
         usages.append(time_used / total_window_time)
 
-    with open(cache_file, 'w') as f:
+    with open(cache_name, 'w') as f:
         f.write(windows_list_to_string(windows))
         f.write(','.join([str(usage) for usage in usages]))
 
@@ -323,12 +341,14 @@ def extract_bandwidths(filename, window_size, count=None, to_ip=None, from_ip=No
 
 def extract_sizes_by_window(filename, window_size, count=None, to_ip=None,
         from_ip=None):
-    cache_file = filename + '_sizes_by_window_' + str(window_size) + '.cache'
-    if os.path.exists(cache_file):
-        with open(cache_file) as f:
+    cache_name = generate_cache_name(filename, '_sizes_by_window', to_ip, from_ip, count, window_size=window_size)
+    if os.path.exists(cache_name):
+        with open(cache_name) as f:
             lines = f.readlines()
             windows = windows_list_from_string(lines[0])
-            sizes = [int(x) for x in lines[1].split(',')]
+            sizes = lines[1].split(',')
+            for i in range(len(sizes)):
+                sizes[i] = [int(x) for x in sizes[i].split('_')]
             return windows, sizes
 
     (windows, packets) = extract_windows(filename, window_size, count=count,
@@ -342,17 +362,18 @@ def extract_sizes_by_window(filename, window_size, count=None, to_ip=None,
 
         sizes.append(window_sizes)
 
-    with open(cache_file, 'w') as f:
+    with open(cache_name, 'w') as f:
         f.write(windows_list_to_string(windows))
-        f.write(','.join([str(x) for x in sizes]))
+        f.write(','.join(['_'.join([str(x) for x in size_list]) for size_list in sizes]))
 
     return windows, sizes
 
 
 def extract_deltas(filename, column=7, to_ip=None, from_ip=None):
-    if os.path.exists(filename + '_deltas.cache'):
-        with open(filename + '_deltas.cache') as f:
-            return [Decimal(delta) for delta in f.readlines[0].split(',')]
+    cache_name = generate_cache_name(filename, '_deltas', to_ip, from_ip, None)
+    if os.path.exists(cache_name):
+        with open(cache_name) as f:
+            return [Decimal(delta) for delta in f.readlines()[0].split(',')]
 
     times = extract_times(filename, column, to_ip=to_ip, from_ip=from_ip)
 
@@ -362,7 +383,7 @@ def extract_deltas(filename, column=7, to_ip=None, from_ip=None):
         diffs.append(time - last_time)
         last_time = time
 
-    with open(filename + '_deltas.cache', 'w') as f:
+    with open(cache_name, 'w') as f:
         f.write(','.join([str(diff) for diff in diffs]))
 
     return diffs

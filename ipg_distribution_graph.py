@@ -11,9 +11,11 @@ import expcap_metadata
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('input_file')
+    parser.add_argument('--input-file', dest='input_files', nargs=2, action='append', required=True, help="csv file to plot.  Needs a label as a second argument.")
     parser.add_argument('--keep-temps', dest='keep_temps', default=False, action='store_true', help="Keep temp files")
     parser.add_argument('--server', dest='server_ip', required=True)
+    parser.add_argument('--output-name', dest='output_name', required=True)
+    parser.add_argument('--title', dest='title', required=False, default=None)
     # This is to avoid issues with tcpdump hanging.
     parser.add_argument('--packets', type=int, required=False,
             default=None, dest='packets',
@@ -21,71 +23,87 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    pcap_file = args.input_file
+    pcap_files = args.input_files
+    output_label = args.output_name
 
-    if pcap_file.endswith('.csv'):
-        outgoing_ipg_gaps = process_csv.extract_ipgs(pcap_file, from_ip=args.server_ip)
-        incoming_ipg_gaps = process_csv.extract_ipgs(pcap_file, to_ip=args.server_ip)
+    for (pcap_file, label) in pcap_files:
+        if pcap_file.endswith('.csv'):
+            incoming_ipg_gaps = process_csv.extract_ipgs(pcap_file, to_ip=args.server_ip)
+            outgoing_ipg_gaps = process_csv.extract_ipgs(pcap_file, from_ip=args.server_ip)
 
-    range = [min(outgoing_ipg_gaps), max(outgoing_ipg_gaps)]
-    print "Range is ", range
-    print "Median is ", np.median(outgoing_ipg_gaps)
-    print "Deviation is ", np.std(outgoing_ipg_gaps)
+        range = [min(incoming_ipg_gaps), max(incoming_ipg_gaps)]
+        print "Dealing with incoming IPG gaps"
+        print "Range is ", range
+        print "Median is ", np.median(incoming_ipg_gaps)
+        print "Deviation is ", np.std(incoming_ipg_gaps)
 
-    # Before we plot these, they need to be converted to normal
-    # floats.  To do this, multiply by 10**6
-    for i in xrange(len(outgoing_ipg_gaps)):
-        outgoing_ipg_gaps[i] = float(Decimal(1000000.0) * outgoing_ipg_gaps[i])
-        print outgoing_ipg_gaps[i]
+        # Before we plot these, they need to be converted to normal
+        # floats.  To do this, multiply by 10**9
+        for i in xrange(len(incoming_ipg_gaps)):
+            incoming_ipg_gaps[i] = float(Decimal(1000000000.0) * incoming_ipg_gaps[i])
+        for i in xrange(len(outgoing_ipg_gaps)):
+            outgoing_ipg_gaps[i] = float(Decimal(1000000000.0) * outgoing_ipg_gaps[i])
 
-    # Remove anything greater than the 99th percentile to stop
-    # if affecting the bins.
-    i = 0
-    nintyninth_percentile = np.percentile(outgoing_ipg_gaps, 99)
-    while i < len(outgoing_ipg_gaps):
-        if outgoing_ipg_gaps[i] > nintyninth_percentile:
-            del outgoing_ipg_gaps[i]
-        else:
-            i += 1
+        # Remove anything greater than the 99th percentile to stop
+        # if affecting the bins.
+        i = 0
+        nintyninth_percentile = np.percentile(incoming_ipg_gaps, 99)
+        while i < len(incoming_ipg_gaps):
+            if incoming_ipg_gaps[i] > nintyninth_percentile:
+                del incoming_ipg_gaps[i]
+            else:
+                i += 1
 
-    print nintyninth_percentile
-    bins = 100
-    plt.hist(outgoing_ipg_gaps, bins=bins, cumulative=True, histtype='step', normed=True)
+        print nintyninth_percentile
+
+        # Avoid issues witht the CDF line decreasing to zero after the data is plotted.
+        bins = np.linspace(min(incoming_ipg_gaps), max(incoming_ipg_gaps) + 0.00000001, 1000)
+        bins = np.append(bins, np.inf)
+
+        plt.figure(1)
+        plt.hist(incoming_ipg_gaps, bins=bins, cumulative=True, histtype='step', normed=True, label=label)
+
+        # Now do the outgoing.
+        # Remove anything greater than the 99th percentile to stop
+        # if affecting the bins.
+        i = 0
+        nintyninth_percentile = np.percentile(outgoing_ipg_gaps, 99)
+        while i < len(outgoing_ipg_gaps):
+            if outgoing_ipg_gaps[i] > nintyninth_percentile:
+                del outgoing_ipg_gaps[i]
+            else:
+                i += 1
+
+        print nintyninth_percentile
+
+        # Avoid issues witht the CDF line decreasing to zero after the data
+        # is plotted.
+        bins = np.linspace(min(outgoing_ipg_gaps), max(outgoing_ipg_gaps), 1000)
+        bins = np.append(bins, np.inf)
+
+        plt.figure(2)
+        plt.hist(outgoing_ipg_gaps, bins=bins, cumulative=True,
+                 histtype='step', normed=True, label=label)
+
+
+    if args.title:
+        plt.figure(1)
+        plt.title('Client Traffic: ' + args.title)
+        plt.figure(2)
+        plt.title('Server Traffic: ' + args.title)
+
+    plt.figure(1)
     plt.xlim([min(outgoing_ipg_gaps), nintyninth_percentile])
     plt.ylabel("Fraction of Packets")
-    plt.xlabel("IPG (ps)")
-    plt.title("Cumlative Frequency Distribution of Inter-Packet Gaps")
-    plt.savefig(pcap_file + '_outgoing_ipg_gaps.eps', format='eps')
-    print "Done! File is in ", pcap_file + '_outgoing_ipg_gaps.eps'
+    plt.xlabel("IPG (ns)")
+    plt.legend()
+    plt.savefig(output_label + '_ipg_gaps_clients.eps', format='eps')
+    print "Done! File is in ", output_label + '_ipg_gaps_clients.eps'
 
-    # Also do the incoming packets.
-    range = [min(incoming_ipg_gaps), max(incoming_ipg_gaps)]
-    print "Range is ", range
-    print "Median is ", np.median(incoming_ipg_gaps)
-    print "Deviation is ", np.std(incoming_ipg_gaps)
-
-    # Before we plot these, they need to be converted to normal
-    # floats.  To do this, multiply by 10**6
-    for i in xrange(len(incoming_ipg_gaps)):
-        incoming_ipg_gaps[i] = float(Decimal(1000000.0) * incoming_ipg_gaps[i])
-        print incoming_ipg_gaps[i]
-
-    # Remove anything greater than the 99th percentile to stop
-    # if affecting the bins.
-    i = 0
-    nintyninth_percentile = np.percentile(incoming_ipg_gaps, 99)
-    while i < len(incoming_ipg_gaps):
-        if incoming_ipg_gaps[i] > nintyninth_percentile:
-            del incoming_ipg_gaps[i]
-        else:
-            i += 1
-
-    print nintyninth_percentile
-    bins = 100
-    plt.hist(incoming_ipg_gaps, bins=bins, cumulative=True, histtype='step', normed=True)
-    plt.xlim([min(incoming_ipg_gaps), nintyninth_percentile])
+    plt.figure(2)
+    plt.xlim([min(outgoing_ipg_gaps), nintyninth_percentile])
     plt.ylabel("Fraction of Packets")
-    plt.xlabel("IPG (ps)")
-    plt.title("Cumlative Frequency Distribution of Inter-Packet Gaps")
-    plt.savefig(pcap_file + '_incoming_ipg_gaps.eps', format='eps')
-    print "Done! File is in ", pcap_file + '_incoming_ipg_gaps.eps'
+    plt.xlabel("IPG (ns)")
+    plt.legend()
+    plt.savefig(output_label + '_ipg_gaps_server.eps', format='eps')
+    print "Done! File is in ", output_label + '_ipg_gaps_server.eps'

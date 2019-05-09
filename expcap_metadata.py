@@ -42,7 +42,8 @@ class ExpcapPacket(object):
             self.padding_packet = False
 
         if self.ethertype != '0800':
-            print "Error: Packet with unsupported ethertype"
+            print "Error: Packet with unsupported ethertype",
+            print self.ethertype
             print input_string
             print self.ethertype
             return

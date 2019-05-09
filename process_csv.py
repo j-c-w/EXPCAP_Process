@@ -1,28 +1,79 @@
 from decimal import *
 from expcap_metadata import ExpcapPacket
 import numpy as np
+import sys
+
+# This is a little hack to make loading repeatedly from the same file faster.
+last_loaded = None
+last_loaded_from = None
+
+def ip_to_hex(ip):
+    if len(ip.split('.')) != 4:
+        print "Input should be a typical IP address"
+        sys.exit(1)
+
+    def extend(string):
+        if len(string) < 2:
+            string = "0" + string
+        return string
+
+    hex_no = ""
+    for number in ip.split('.'):
+        hex_no += extend(hex(int(number))[2:])
+
+    return hex_no
 
 
-def extract_expcap_metadatas(filename, count=None):
-    with open(filename) as f:
-        if count:
-            lines = f.readlines()[1:count]
-        else:
-            lines = f.readlines()[1:]
+def extract_expcap_metadatas(filename, count=None, to_ip=None, from_ip=None):
+    global last_loaded
+    global last_loaded_from
 
-        metadata = []
-        for line in lines:
-            expcap_packet = ExpcapPacket(line)
-            if expcap_packet.padding_packet or not expcap_packet.fully_processed_ip:
-                continue
-            metadata.append(expcap_packet)
+    if filename == last_loaded_from:
+        # Clone the last loaded list and send it back if this is the same
+        # file as before.
+        metadata = last_loaded[:]
+    else:
+        with open(filename) as f:
+            if count:
+                lines = f.readlines()[1:count]
+            else:
+                lines = f.readlines()[1:]
 
-    metadata.sort(key=lambda x: x.start_time)
+            metadata = []
+            for line in lines:
+                expcap_packet = ExpcapPacket(line)
+                if expcap_packet.padding_packet or not expcap_packet.fully_processed_ip:
+                    continue
+                metadata.append(expcap_packet)
+
+        metadata.sort(key=lambda x: x.start_time)
+        last_loaded = metadata[:]
+        last_loaded_from = filename
+
+    if to_ip:
+        index = 0
+        hex_ip = ip_to_hex(to_ip)
+        while index < len(metadata):
+            if metadata[index].dst_addr != hex_ip:
+                del metadata[index]
+            else:
+                index += 1
+
+    if from_ip:
+        index = 0
+        hex_ip = ip_to_hex(from_ip)
+        while index < len(metadata):
+            if metadata[index].src_addr != hex_ip:
+                del metadata[index]
+            else:
+                index += 1
+
     return metadata
 
 
-def extract_sizes(filename, count=None):
-    metadatas = extract_expcap_metadatas(filename, count)
+def extract_sizes(filename, count=None, to_ip=None, from_ip=None):
+    metadatas = extract_expcap_metadatas(filename, count, to_ip=to_ip,
+                                         from_ip=from_ip)
     sizes = []
     for expcap_packet in metadatas:
         sizes.append(expcap_packet.length)
@@ -30,8 +81,41 @@ def extract_sizes(filename, count=None):
     return sizes
 
 
-def extract_ipgs(filename, count=None):
-    metadatas = extract_expcap_metadatas(filename, count=count)
+
+""" This finds bursts by finding packet_threshold number
+of packets that are all at most ipg_threshold (in ps)
+apart.
+
+It returns a list of lists of packet bursts.
+"""
+def find_bursts(filename, count=None, ipg_threshold=20000, packet_threshold=20, to_ip=None, from_ip=None):
+    metadatas = extract_expcap_metadatas(filename, count=count, to_ip=to_ip, from_ip=from_ip)
+
+    time = metadatas[0].wire_start_time
+    burst_count = 0
+    current_burst = []
+    bursts = []
+    for packet in metadatas[1:]:
+        next_time = packet.wire_start_time
+
+        if next_time - time < ipg_threshold:
+            burst_count += 1
+            current_burst.append(packet)
+        else:
+            burst_count = 0
+            if len(current_burst) > packet_threshold:
+                bursts.append(current_burst)
+                current_burst = []
+        time = next_time
+    
+    if len(current_burst) > packet_threshold:
+        bursts.append(current_burst)
+
+    return bursts
+
+
+def extract_ipgs(filename, count=None, to_ip=None, from_ip=None):
+    metadatas = extract_expcap_metadatas(filename, count=count, to_ip=to_ip, from_ip=from_ip)
     ipgs = []
     if len(metadatas) < 2:
         return []
@@ -44,23 +128,14 @@ def extract_ipgs(filename, count=None):
     return ipgs
 
 
-def extract_times(filename, column=7, count=None):
+def extract_times(filename, column=7, count=None, to_ip=None, from_ip=None):
     times = []
-    with open(filename) as f:
-        # Skip the first line, which likely includes headers
-        if count:
-            lines = f.readlines()[1:count]
-        else:
-            lines = f.readlines()[1:]
-        last_time = -1.0
-        for line in lines:
-            time = line.split(",")[column]
-            # There is a bug in the HPT setup which
-            # means that invalid packets sometimes
-            # appear.
-            if time != last_time:
-                times.append(Decimal(time))
-            last_time = time
+
+    expcap_metadatas = \
+        extract_expcap_metadatas(filename, count=count, to_ip=to_ip, from_ip=from_ip)
+
+    for expcap in expcap_metadatas:
+        times.append(expcap.wire_start_time)
     return times
 
 
@@ -76,10 +151,10 @@ The first element of each tuple is what fraction of
 each packet it within the window.  The second element
 of each tuple is the packet.
 """
-def extract_windows(filename, window_size, count=None):
+def extract_windows(filename, window_size, count=None, to_ip=None, from_ip=None):
     # Note that window_size is in pico seconds, so convert to seconds
     window_size = Decimal(window_size) / Decimal(1000000000000)
-    expcap_metadatas = extract_expcap_metadatas(filename, count)
+    expcap_metadatas = extract_expcap_metadatas(filename, count=count, to_ip=to_ip, from_ip=from_ip)
     debug = False
     packet_groups = []
     windows = []
@@ -167,8 +242,9 @@ def extract_windows(filename, window_size, count=None):
     return (windows, packet_groups)
 
 
-def extract_bandwidths(filename, window_size, count=None):
-    (windows, packets) = extract_windows(filename, window_size, count=count)
+def extract_bandwidths(filename, window_size, count=None, to_ip=None, from_ip=None):
+    (windows, packets) = extract_windows(filename, window_size, count=count,
+                                         to_ip=to_ip, from_ip=from_ip)
 
     usages = []
     # For each window, go through and sum the total
@@ -185,8 +261,10 @@ def extract_bandwidths(filename, window_size, count=None):
     return (windows, usages)
 
 
-def extract_sizes_by_window(filename, window_size, count=None):
-    (windows, packets) = extract_windows(filename, window_size, count=count)
+def extract_sizes_by_window(filename, window_size, count=None, to_ip=None,
+        from_ip=None):
+    (windows, packets) = extract_windows(filename, window_size, count=count,
+            to_ip=to_ip, from_ip=from_ip)
 
     sizes = []
     for packet_window in packets:
@@ -199,8 +277,8 @@ def extract_sizes_by_window(filename, window_size, count=None):
     return windows, sizes
 
 
-def extract_deltas(filename, column=7):
-    times = extract_times(filename, column)
+def extract_deltas(filename, column=7, to_ip=None, from_ip=None):
+    times = extract_times(filename, column, to_ip=to_ip, from_ip=from_ip)
 
     diffs = []
     last_time = times[0]

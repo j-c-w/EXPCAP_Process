@@ -10,7 +10,7 @@ import process_pcap
 import expcap_metadata
 
 
-def microburst_analyze(bursts, identifier, pcap_file):
+def microburst_analyze(bursts, identifier, pcap_file, label, id_base):
     print identifier, " Number of bursts", len(bursts)
     bins = 1000
     if len(bursts) == 0:
@@ -18,12 +18,9 @@ def microburst_analyze(bursts, identifier, pcap_file):
 
     # Print a CDF of the microburst length distribution:
     lengths = [len(x) for x in bursts]
-    plt.clf()
-    plt.hist(lengths, bins=bins, cumulative=True, histtype='step', normed=True)
-    plt.xlabel("Burst Length (packets)")
-    plt.ylabel("CDF")
-    plt.title("Cumlative Frequency Distribution of Burst Lengths")
-    plt.savefig(pcap_file + "burst_length_cdf_" + identifier + ".eps")
+    bins = np.append(np.linspace(min(lengths), max(lengths), 1000), np.inf)
+    plt.figure(1 + id_base)
+    plt.hist(lengths, bins=bins, cumulative=True, histtype='step', normed=True, label=label)
 
     # Plot a CDF of the bandwidth achieved in each microburst.
     bandwidths = []
@@ -38,22 +35,19 @@ def microburst_analyze(bursts, identifier, pcap_file):
         bandwidths[i] = float(bandwidths[i])
     print bandwidths
 
-    plt.clf()
-    plt.hist(bandwidths, bins=bins, cumulative=True, histtype='step', normed=True)
-    plt.xlabel("Burst Bandwidth (Mbps)")
-    plt.ylabel("CDF")
-    plt.title("Cumlative Frequency Distribution of Burst Bandwidths")
-    plt.savefig("burst_length_bandwidth_" + identifier + ".eps")
-
+    plt.figure(2 + id_base)
+    bins = np.append(np.linspace(min(bandwidths), max(bandwidths), 1000), np.inf)
+    plt.hist(bandwidths, bins=bins, cumulative=True, histtype='step', normed=True, label=label)
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('input_file')
-    parser.add_argument('--ipg-threshold', type=int, dest='ipg_threshold', help="How long between packets (ps) for sequential packets  to be counted in the same burst.", required=True)
-    parser.add_argument('--packet-threshold', type=int, dest='packet_threshold', help="How many packets must arrive before  a bursst starts", required=True)
+    parser.add_argument('--input-file', dest='input_files', nargs=2, action='append', required=True, help="csv file to plot.  Needs a label as a second argument.")
+    parser.add_argument('--thresholds', dest='thresholds', help="This should be a three-tuple.  The firs tiem should be how long between packets (ps) for sequential packets  to be counted in the same burst.  The second item should be how many packets must arrive before  a bursst starts.  The last item should be a label.", required=True, action='append', nargs=3)
     parser.add_argument('--keep-temps', dest='keep_temps', default=False, action='store_true', help="Keep temp files")
     parser.add_argument('--server', dest='server_ip', required=True, help="IP of the machine that the card is directory connected to")
+    parser.add_argument('--output-name', dest='output_name', required=True)
+    parser.add_argument('--title', dest='title')
     # This is to avoid issues with tcpdump hanging.
     parser.add_argument('--packets', type=int, required=False,
             default=None, dest='packets',
@@ -61,17 +55,56 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    pcap_file = args.input_file
-    ipg_threshold = Decimal(args.ipg_threshold) / Decimal(1000000000000.0)
+    for pcap_file, label in args.input_files:
+        for allowed_ipg, burst_size, label_suffix in args.thresholds:
+            ipg_threshold = Decimal(allowed_ipg) / Decimal(1000000000000.0)
 
-    if pcap_file.endswith('.csv'):
-        incoming_bursts = \
-                process_csv.find_bursts(pcap_file, ipg_threshold=ipg_threshold, packet_threshold=args.packet_threshold,
-                                               to_ip=args.server_ip)
-        outgoing_bursts  = \
-            process_csv.find_bursts(pcap_file, ipg_threshold=ipg_threshold, packet_threshold=args.packet_threshold,
-                                           from_ip=args.server_ip)
+            if pcap_file.endswith('.csv'):
+                incoming_bursts = \
+                        process_csv.find_bursts(pcap_file, ipg_threshold=ipg_threshold, packet_threshold=int(burst_size),
+                                                       to_ip=args.server_ip)
+                outgoing_bursts  = \
+                    process_csv.find_bursts(pcap_file, ipg_threshold=ipg_threshold, packet_threshold=int(burst_size),
+                                                   from_ip=args.server_ip)
 
-    #  Handle the incoming information first.
-    microburst_analyze(incoming_bursts, str(ipg_threshold) + "_incoming", pcap_file)
-    microburst_analyze(outgoing_bursts, str(ipg_threshold) + "_outgoing", pcap_file)
+            #  Handle the incoming information first.
+            microburst_analyze(incoming_bursts, str(ipg_threshold) + "_incoming", pcap_file, label + ' ' + label_suffix, 0)
+            microburst_analyze(outgoing_bursts, str(ipg_threshold) + "_outgoing", pcap_file, label + ' ' + label_suffix, 2)
+
+    if args.title:
+        plt.figure(1)
+        plt.title('Client Traffic (Burst Lengths): ')
+        plt.figure(2)
+        plt.title('Client Traffic (Bandwidths): ')
+        plt.figure(3)
+        plt.title('Server Traffic (Burst Lengths): ')
+        plt.figure(4)
+        plt.title('Server Traffic (Bandwidths): ')
+
+    plt.figure(1)
+    plt.xlabel("Burst Length (packets)")
+    plt.ylabel("CDF")
+    plt.legend()
+    plt.savefig(args.output_name + "_burst_length_cdf_incoming.eps")
+    print "Output in ", args.output_name + "_burst_length_cdf_incoming.eps"
+
+    plt.figure(2)
+    plt.xlabel("Burst Bandwidth (Mbps)")
+    plt.ylabel("CDF")
+    plt.legend()
+    plt.savefig(args.output_name + "_burst_bandwidth_cdf_incoming.eps")
+    print "Output in ", args.output_name + "_burst_bandwidth_cdf_incoming.eps"
+
+    plt.figure(3)
+    plt.xlabel("Burst Bandwidth (Mbps)")
+    plt.ylabel("CDF")
+    plt.legend()
+    plt.savefig(args.output_name + "_burst_length_bandwidth_outgoing.eps")
+    print "Output in ", args.output_name + "_burst_length_bandwidth_outgoing.eps"
+
+    plt.figure(4)
+    plt.xlabel("Burst Bandwidth (Mbps)")
+    plt.ylabel("CDF")
+    plt.legend()
+    plt.savefig(args.output_name + "_burst_bandwidth_cdf_outgoing.eps")
+    print "Output in ", args.output_name + "_burst_bandwidth_cdf_outgoing.eps"

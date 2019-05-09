@@ -22,19 +22,25 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    for pcap_file, label in args.pcap_files:
-        for window in args.windows:
+    for (pcap_file, label) in args.input_files:
+        for (window_size, label_suffix) in args.window_sizes:
             if pcap_file.endswith('.csv'):
-                windows, packet_sizes = process_csv.extract_sizes_by_window(pcap_file, window)
+                x_values, bandwidths = process_csv.extract_bandwidths(pcap_file, window_size)
+            # Recenter the xvalues around zero.
+            zero_value = x_values[0][0]
+            for i in range(len(x_values)):
+                x_values[i] = x_values[i][0] - zero_value
 
-            median_sizes = [np.median(x) for x in packet_sizes]
-            windows = [x[0] for x in windows]
-            plt.plot(windows, median_sizes, label)
+            bins = np.append(np.linspace(min(bandwidths), max(bandwidths), 1000), np.inf)
+            plt.hist(bandwidths, cumulative=True, normed=True, histtype='step', bins=bins, label=label)
+
+    plt.xlabel("Bandwidth Used (Mbps)")
+    plt.ylabel("CDF")
+    if len(args.input_files) * len(args.window_sizes) > 1:
+        plt.legend()
 
     if args.title:
         plt.title(args.title)
-
-    plt.ylabel("Median Packet sizes through time")
-    plt.xlabel("Time (s)")
-    plt.savefig(args.output_name + '_sizes_through_time.eps', format='eps')
-    print "Done! File is in ", args.output_name + '_sizes_through_time.eps'
+    filename = args.output_name + '.eps'
+    plt.savefig(filename, format='eps')
+    print "Done! File is in ", filename

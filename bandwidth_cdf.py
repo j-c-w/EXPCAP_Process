@@ -1,12 +1,10 @@
 import argparse
+import graph_utils
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import numpy as np
 import process_csv
-import process_txt
-import process_pcap
-import expcap_metadata
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -55,14 +53,18 @@ if __name__ == "__main__":
     plt.figure(1)
     plt.xlabel("Bandwidth (Mbps)")
     plt.ylabel("Fraction of Time")
-    plt.legend()
+    graph_utils.legend_bottom_right()
+    graph_utils.set_non_negative_axes()
+    graph_utils.set_ticks()
     filename = args.output_name + '_incoming_bandwidth_cdf_window.eps'
     plt.savefig(filename, format='eps')
     print "Done! File is in ", filename
     plt.figure(2)
     plt.xlabel("Bandwidth (Mbps)")
     plt.ylabel("Fraction of Time")
-    plt.legend()
+    graph_utils.legend_bottom_right()
+    graph_utils.set_non_negative_axes()
+    graph_utils.set_ticks()
     filename = args.output_name + '_outgoing_bandwidth_cdf_window.eps'
     plt.savefig(filename, format='eps')
     print "Done! File is in ", filename

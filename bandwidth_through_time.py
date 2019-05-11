@@ -4,9 +4,7 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import numpy as np
 import process_csv
-import process_txt
-import process_pcap
-import expcap_metadata
+import graph_utils
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -61,18 +59,20 @@ if __name__ == "__main__":
     plt.figure(2)
     plt.xlabel("Time (s)")
     plt.ylabel("Bandwidth (Mbps)")
+    graph_utils.set_ticks()
+    graph_utils.set_non_negative_axes()
     plt.legend()
-    filename = args.output_name + '_incoming_bandwidth_window_' + \
-        str(window_size) + '.eps'
+    filename = args.output_name + '_incoming_bandwidth_windowed.eps'
     plt.savefig(filename, format='eps')
     print "Done! File is in ", filename
 
     plt.figure(1)
     plt.xlabel("Time (s)")
     plt.ylabel("Bandwidth (Mbps)")
+    graph_utils.set_non_negative_axes()
+    graph_utils.set_ticks()
     plt.legend()
-    filename = args.output_name + '_outgoing_bandwidth_window_' + \
-        str(window_size) + '.eps'
+    filename = args.output_name + '_outgoing_bandwidth_windowed.eps'
 
     plt.savefig(filename, format='eps')
     print "Done! File is in ", filename

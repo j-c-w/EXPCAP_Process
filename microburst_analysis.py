@@ -1,5 +1,6 @@
 from decimal import *
 import argparse
+import graph_utils
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
@@ -84,27 +85,35 @@ if __name__ == "__main__":
     plt.figure(1)
     plt.xlabel("Burst Length (packets)")
     plt.ylabel("CDF")
-    plt.legend()
+    graph_utils.legend_bottom_right()
+    graph_utils.set_non_negative_axes()
+    graph_utils.set_ticks()
     plt.savefig(args.output_name + "_burst_length_cdf_incoming.eps")
     print "Output in ", args.output_name + "_burst_length_cdf_incoming.eps"
 
     plt.figure(2)
     plt.xlabel("Burst Bandwidth (Mbps)")
     plt.ylabel("CDF")
-    plt.legend()
+    graph_utils.legend_bottom_right()
+    graph_utils.set_non_negative_axes()
+    graph_utils.set_ticks()
     plt.savefig(args.output_name + "_burst_bandwidth_cdf_incoming.eps")
     print "Output in ", args.output_name + "_burst_bandwidth_cdf_incoming.eps"
 
     plt.figure(3)
-    plt.xlabel("Burst Bandwidth (Mbps)")
+    plt.xlabel("Burst Length (packets)")
     plt.ylabel("CDF")
-    plt.legend()
+    graph_utils.legend_bottom_right()
+    graph_utils.set_non_negative_axes()
+    graph_utils.set_ticks()
     plt.savefig(args.output_name + "_burst_length_bandwidth_outgoing.eps")
     print "Output in ", args.output_name + "_burst_length_bandwidth_outgoing.eps"
 
     plt.figure(4)
     plt.xlabel("Burst Bandwidth (Mbps)")
     plt.ylabel("CDF")
-    plt.legend()
+    graph_utils.legend_bottom_right()
+    graph_utils.set_non_negative_axes()
+    graph_utils.set_ticks()
     plt.savefig(args.output_name + "_burst_bandwidth_cdf_outgoing.eps")
     print "Output in ", args.output_name + "_burst_bandwidth_cdf_outgoing.eps"

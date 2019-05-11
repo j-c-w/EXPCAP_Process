@@ -1,4 +1,5 @@
 import argparse
+import graph_utils
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
@@ -37,18 +38,30 @@ if __name__ == "__main__":
             # Print the server graph
             median_sizes = [np.median(x) for x in server_packet_sizes]
             server_windows = [x[0] for x in server_windows]
+            # Recenter the values around zero.
+            for i in range(1, len(server_windows)):
+                server_windows[i] = server_windows[i] - server_windows[0]
+            server_windows[0] = 0.0
             plt.figure(1)
             plt.plot(server_windows, median_sizes, label=label + ' ' + window_label)
 
             # Print the client graph
             median_sizes = [np.median(x) for x in client_packet_sizes]
             client_windows = [x[0] for x in client_windows]
+            # Recenter the values around zero.
+            for i in range(1, len(client_windows)):
+                client_windows[i] = client_windows[i] - client_windows[0]
+            client_windows[0] = 0.0
             plt.figure(2)
             plt.plot(client_windows, median_sizes, label=label + ' ' + window_label)
 
             # Print the graph of everything else.
             median_sizes = [np.median(x) for x in all_packet_sizes]
             all_windows = [x[0] for x in all_windows]
+            # Recenter the values around zero.
+            for i in range(1, len(all_windows)):
+                all_windows[i] = all_windows[i] - all_windows[0]
+            all_windows[0] = 0.0
             plt.figure(3)
             plt.plot(all_windows, median_sizes, label=label + ' ' + window_label)
 
@@ -65,15 +78,18 @@ if __name__ == "__main__":
     plt.ylabel("Median Packet Size")
     plt.xlabel("Time (s)")
     plt.legend()
-    plt.title("Median Packet Sizes through Time")
+    graph_utils.set_ticks()
+    graph_utils.set_non_negative_axes()
     plt.savefig(args.output_name + '_server_sizes_through_time.eps', format='eps')
-    print "Done! File is in ", args.output_name + '_sesrver_sizes_through_time.eps'
+    print "Done! File is in ", args.output_name + '_server_sizes_through_time.eps'
 
     # Output the client graph.
     plt.figure(2)
     plt.ylabel("Median Packet Size")
     plt.xlabel("Time (s)")
     plt.legend()
+    graph_utils.set_ticks()
+    graph_utils.set_non_negative_axes()
     plt.savefig(args.output_name + '_client_sizes_through_time.eps', format='eps')
     print "Done! File is in ", args.output_name + '_client_sizes_through_time.eps'
 
@@ -82,5 +98,7 @@ if __name__ == "__main__":
     plt.ylabel("Median Packet Size")
     plt.xlabel("Time (s)")
     plt.legend()
+    graph_utils.set_ticks()
+    graph_utils.set_non_negative_axes()
     plt.savefig(args.output_name + '_all_times.eps', format='eps')
     print "Done! File is in ", args.output_name + '_all_times.eps'

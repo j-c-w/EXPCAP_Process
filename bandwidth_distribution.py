@@ -1,12 +1,10 @@
 import argparse
+import graph_utils
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import numpy as np
 import process_csv
-import process_txt
-import process_pcap
-import expcap_metadata
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -25,7 +23,7 @@ if __name__ == "__main__":
     for (pcap_file, label) in args.input_files:
         for (window_size, label_suffix) in args.window_sizes:
             if pcap_file.endswith('.csv'):
-                x_values, bandwidths = process_csv.extract_bandwidths(pcap_file, window_size)
+                x_values, usages = process_csv.extract_bandwidths(pcap_file, window_size)
             # Recenter the xvalues around zero.
             zero_value = x_values[0][0]
             for i in range(len(x_values)):
@@ -36,6 +34,9 @@ if __name__ == "__main__":
 
     plt.xlabel("Bandwidth Used (Mbps)")
     plt.ylabel("CDF")
+    graph_utils.legend_bottom_right()
+    graph_utils.set_non_negative_axes()
+    graph_utils.set_ticks()
     if len(args.input_files) * len(args.window_sizes) > 1:
         plt.legend()
 

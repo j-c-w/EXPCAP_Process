@@ -1,12 +1,10 @@
 import argparse
+import graph_utils
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import numpy as np
 import process_csv
-import process_txt
-import process_pcap
-import expcap_metadata
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -40,7 +38,8 @@ if __name__ == "__main__":
         outgoing_packet_sizes = np.asarray(outgoing_packet_sizes)
         bins = np.append(np.linspace(min(outgoing_packet_sizes), max(outgoing_packet_sizes) + 1, 1000), [np.inf])
         plt.figure(1)
-        plt.hist(outgoing_packet_sizes, bins=bins, cumulative=True, histtype='step', normed=True, label=label)
+        plt.hist(outgoing_packet_sizes, bins=bins, cumulative=True,
+                 histtype='step', normed=True, label=label)
 
         # Plot the incoming packet sizes.
         range = [min(incoming_packet_sizes), max(incoming_packet_sizes)]
@@ -61,12 +60,13 @@ if __name__ == "__main__":
         print "Median is ", np.median(both_packet_sizes)
         print "Deviation is ", np.std(both_packet_sizes)
         both_packet_sizes = np.asarray(both_packet_sizes)
-        bins = np.append(np.linspace(min(both_packet_sizes), max(both_packet_sizes) + 1, 1000), [np.inf])
+        bins = np.append(np.linspace(min(both_packet_sizes),
+                                     max(both_packet_sizes) + 1,
+                                     1000), [np.inf])
 
         plt.figure(3)
         plt.hist(both_packet_sizes, bins=bins, cumulative=True,
                  histtype='step', normed=True, label=label)
-
 
     if args.title:
         plt.figure(1)
@@ -77,23 +77,29 @@ if __name__ == "__main__":
         plt.title(args.title)
 
     plt.figure(1)
-    plt.ylabel("Fraction of Packets")
+    plt.ylabel("CDF")
     plt.xlabel("Sizes (B)")
-    plt.legend()
+    graph_utils.legend_bottom_right()
+    graph_utils.set_non_negative_axes()
+    graph_utils.set_ticks()
     plt.savefig(args.output_name + '_outgoing_sizes.eps', format='eps')
     print "Done! File is in ", args.output_name + '_outgoing_sizes.eps'
 
     plt.figure(2)
-    plt.ylabel("Fraction of Packets")
+    plt.ylabel("CDF")
     plt.xlabel("Sizes (B)")
-    plt.legend()
+    graph_utils.legend_bottom_right()
+    graph_utils.set_non_negative_axes()
+    graph_utils.set_ticks()
     plt.savefig(args.output_name + '_incoming_sizes.eps', format='eps')
     print "Done! File is in ", args.output_name + '_incoming_sizes.eps'
 
     # Plot the packet sizes for both.
     plt.figure(3)
-    plt.ylabel("Fraction of Packets")
+    plt.ylabel("CDF")
     plt.xlabel("Sizes (B)")
-    plt.legend()
+    graph_utils.legend_bottom_right()
+    graph_utils.set_non_negative_axes()
+    graph_utils.set_ticks()
     plt.savefig(args.output_name + '_all_sizes.eps', format='eps')
     print "Done! File is in ", args.output_name + '_all_sizes.eps'

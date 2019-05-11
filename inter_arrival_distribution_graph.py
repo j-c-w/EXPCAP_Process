@@ -1,3 +1,4 @@
+import graph_utils
 from decimal import *
 import argparse
 import matplotlib
@@ -70,16 +71,20 @@ if __name__ == "__main__":
         plt.title("Client Traffic: " + args.title)
 
     plt.figure(1)
-    plt.ylabel("Number of Packets")
+    plt.ylabel("CDF")
     plt.xlabel("Inter-arrival time (ns)")
-    plt.legend()
+    graph_utils.legend_bottom_right()
+    graph_utils.set_non_negative_axes()
+    graph_utils.set_ticks()
     plt.savefig(args.output_name + '_outgoing_interarrival.eps', format='eps')
     print "Done! File is in ", args.output_name + '_outgoing_interarrival.eps'
 
     # Do the incoming packets.
     plt.figure(2)
-    plt.ylabel("Number of Packets")
-    plt.legend()
+    plt.ylabel("CDF")
+    graph_utils.legend_bottom_right()
+    graph_utils.set_non_negative_axes()
+    graph_utils.set_ticks()
     plt.xlabel("Inter-arrival time (ns)")
     plt.savefig(args.output_name + '_incoming_interarrival.eps', format='eps')
     print "Done! File is in ", args.output_name + '_incoming_interarrival.eps'

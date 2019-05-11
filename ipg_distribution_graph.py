@@ -1,5 +1,6 @@
 from decimal import Decimal
 import argparse
+import graph_utils
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
@@ -96,7 +97,9 @@ if __name__ == "__main__":
     plt.xlim([min(outgoing_ipg_gaps), nintyninth_percentile])
     plt.ylabel("Fraction of Packets")
     plt.xlabel("IPG (ns)")
-    plt.legend()
+    graph_utils.legend_bottom_right()
+    graph_utils.set_non_negative_axes()
+    graph_utils.set_ticks()
     plt.savefig(output_label + '_ipg_gaps_clients.eps', format='eps')
     print "Done! File is in ", output_label + '_ipg_gaps_clients.eps'
 
@@ -104,6 +107,8 @@ if __name__ == "__main__":
     plt.xlim([min(outgoing_ipg_gaps), nintyninth_percentile])
     plt.ylabel("Fraction of Packets")
     plt.xlabel("IPG (ns)")
-    plt.legend()
+    graph_utils.legend_bottom_right()
+    graph_utils.set_non_negative_axes()
+    graph_utils.set_ticks()
     plt.savefig(output_label + '_ipg_gaps_server.eps', format='eps')
     print "Done! File is in ", output_label + '_ipg_gaps_server.eps'

@@ -49,9 +49,36 @@ class ExpcapPacket(object):
             return
 
         # And the IP Source and destination addresses.
+        self.is_ip = True
         self.src_addr = self.packet_data[52:60]
         self.dst_addr = self.packet_data[60:68]
+        self.ip_protocol = self.packet_data[46:48]
+        self.ip_length = int(self.packet_data[42:46], 16)
         self.fully_processed_ip = True
+
+        if self.ip_protocol == "06":
+            # This is a TCP packet.
+            self.is_tcp = True
+            self.src_port = self.packet_data[68:72]
+            self.dst_port = self.packet_data[72:76]
+            self.tcp_seq_no = self.packet_data[76:84]
+            self.tcp_ack_no = self.packet_data[84:92]
+
+            tcp_flags = int(self.packet_data[94:96], 16)
+            print tcp_flags
+            self.is_tcp_rst = tcp_flags & (2 ** 2)
+            self.is_tcp_syn = tcp_flags & (2 ** 1)
+            self.is_tcp_fin = tcp_flags & (2 ** 0)
+            # -20 for IP header and -20 for TCP header.
+            self.tcp_data_length = self.ip_length - 20 - 20
+            if self.is_tcp_syn:
+                print "Is syn!"
+                print self.packet_data
+            if self.is_tcp_fin:
+                print "Is Fin!"
+            self.fully_processed_tcp = True
+        else:
+            self.is_tcp = False
 
 
 if __name__ == "__main__":

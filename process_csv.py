@@ -55,6 +55,15 @@ def generate_cache_name(input_file, name, to_ip, from_ip, count, window_size=Non
     return name + '.cache'
 
 
+def tcp_flow_identifier(packet):
+    # Note that this needs to identify /flows/ so things
+    # need to be in the same order independent of whether
+    # this is going to or from the server.
+    data = [packet.src_addr, packet.dst_addr, packet.src_port, packet.dst_port]
+
+    return '_'.join(sorted(data))
+
+
 def extract_expcap_metadatas(filename, count=None, to_ip=None, from_ip=None):
     global last_loaded
     global last_loaded_from
@@ -307,7 +316,16 @@ def extract_windows(filename, window_size, count=None, to_ip=None, from_ip=None)
     return (windows, packet_groups)
 
 
-def extract_bandwidths(filename, window_size, count=None, to_ip=None, from_ip=None):
+def extract_bandwidths(filename, window_size, max_mbps=10000, count=None, to_ip=None, from_ip=None):
+    windows, utilizations = extract_utilizations(filename, window_size, count=count, to_ip=to_ip, from_ip=from_ip)
+
+    for i in range(len(utilizations)):
+        utilizations[i] = Decimal(max_mbps) * utilizations[i]
+
+    return windows, utilizations
+
+
+def extract_utilizations(filename, window_size, count=None, to_ip=None, from_ip=None):
     cache_name = generate_cache_name(filename, '_bandwidths', to_ip, from_ip, count, window_size=str(window_size))
     if os.path.exists(cache_name):
         with open(cache_name) as f:
@@ -387,3 +405,97 @@ def extract_deltas(filename, column=7, to_ip=None, from_ip=None):
         f.write(','.join([str(diff) for diff in diffs]))
 
     return diffs
+
+
+def extract_flow_lengths(filename):
+    cache_name = generate_cache_name(filename, '_flow_lengths', None, None, None)
+
+    if os.path.exists(cache_name):
+        with open(cache_name) as f:
+            data = f.readlines()[0]
+            if data == '':
+                return []
+            lengths = [Decimal(x) for x in data.split(',')]
+            return lengths
+
+    # Get all the TCP packets, then look for SYNs and FINs.
+    metadatas = extract_expcap_metadatas(filename)
+
+    flows = {}
+    flow_count = 0
+    flow_lengths = []
+    for packet in metadatas:
+        if packet.is_ip and packet.is_tcp and packet.is_tcp_syn:
+            identifier = tcp_flow_identifier(packet)
+            flows[identifier] = packet.wire_start_time
+            flow_count += 1
+
+        if packet.is_ip and packet.is_tcp and (packet.is_tcp_fin or packet.is_tcp_rst):
+            identifier = tcp_flow_identifier(packet)
+            if identifier in flows:
+                flow_lengths.append(packet.wire_end_time - flows[identifier])
+                # Remove that flow, we don't want to count
+                # everything twice.  We'll only delete it on
+                # the first FIN, but that's OK.
+                del flows[identifier]
+            else:
+                print "Warning! Found a FIN/RST for a flow we didn't see a SYN for!"
+
+    if len(flows) > 0:
+        print "Warning: Saw ", len(flows), " SYNs for flows that weren't closed"
+    with open(cache_name, 'w') as f:
+        f.write(','.join([str(length) for length in flow_lengths]))
+
+    print "Flow count is ", flow_count
+    return flow_lengths
+
+
+def extract_flow_sizes(filename):
+    cache_name = generate_cache_name(filename, '_flow_sizes', None, None, None)
+
+    if os.path.exists(cache_name):
+        with open(cache_name) as f:
+            data = f.readlines()[0]
+            if data == '':
+                return []
+            lengths = [int(x) for x in data.split(',')]
+            return lengths
+
+    # Get all the TCP packets, then look for SYNs and FINs.
+    metadatas = extract_expcap_metadatas(filename)
+
+    flows = {}
+    flow_count = 0
+    flow_sizes = []
+    for packet in metadatas:
+        if packet.is_ip and packet.is_tcp and packet.is_tcp_syn:
+            # print "Starting flow for ", packet.packet_data
+            identifier = tcp_flow_identifier(packet)
+            print "Flow ID is ", identifier
+            # print "Start time is", packet.wire_start_time
+            flows[identifier] = packet.tcp_data_length
+            flow_count += 1
+        elif packet.is_ip and packet.is_tcp and (packet.is_tcp_fin or packet.is_tcp_rst):
+            identifier = tcp_flow_identifier(packet)
+            if identifier in flows:
+                flow_sizes.append(packet.tcp_data_length + flows[identifier])
+                # Remove that flow, we don't want to count
+                # everything twice.  We'll only delete it on
+                # the first FIN, but that's OK.
+                del flows[identifier]
+            else:
+                print "Warning! Found a FIN/RST for a flow we didn't see a SYN for!"
+        elif packet.is_tcp:
+            identifier = tcp_flow_identifier(packet)
+            if identifier in flows:
+                flows[identifier] += packet.tcp_data_length
+            else:
+                print "Saw a TCP packet for a flow we didn't SYN to!"
+
+    if len(flows) > 0:
+        print "Warning: Saw ", len(flows), " SYNs for flows that weren't closed"
+    with open(cache_name, 'w') as f:
+        f.write(','.join([str(length) for length in flow_sizes]))
+
+    print "Flow count is ", flow_count
+    return flow_sizes

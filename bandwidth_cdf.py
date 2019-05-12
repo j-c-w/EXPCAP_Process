@@ -52,8 +52,9 @@ if __name__ == "__main__":
 
     plt.figure(1)
     plt.xlabel("Bandwidth (Mbps)")
-    plt.ylabel("Fraction of Time")
+    plt.ylabel("CDF")
     graph_utils.legend_bottom_right()
+    graph_utils.set_yax_max_one()
     graph_utils.set_non_negative_axes()
     graph_utils.set_ticks()
     filename = args.output_name + '_incoming_bandwidth_cdf_window.eps'
@@ -61,8 +62,9 @@ if __name__ == "__main__":
     print "Done! File is in ", filename
     plt.figure(2)
     plt.xlabel("Bandwidth (Mbps)")
-    plt.ylabel("Fraction of Time")
+    plt.ylabel("CDF")
     graph_utils.legend_bottom_right()
+    graph_utils.set_yax_max_one()
     graph_utils.set_non_negative_axes()
     graph_utils.set_ticks()
     filename = args.output_name + '_outgoing_bandwidth_cdf_window.eps'

@@ -1,5 +1,11 @@
 import matplotlib.pyplot as plt
+from matplotlib.ticker import MaxNLocator
 import sys
+
+
+def set_integer_ticks():
+    ax = plt.figure().gca()
+    ax.xaxis.set_major_locator(MaxNLocator(integer=True))
 
 
 def set_ticks():
@@ -24,6 +30,12 @@ def set_non_negative_axes():
         plt.xlim(0, xmax)
     if ymin < 0:
         plt.ylim(0, ymax)
+
+
+def set_yax_max_one():
+    (ymin, ymax) = plt.ylim()
+    if ymax > 1:
+        plt.ylim(ymin, 1)
 
 
 def legend_bottom_right():

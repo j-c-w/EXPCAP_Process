@@ -37,9 +37,10 @@ if __name__ == "__main__":
         plt.title(args.title)
 
     plt.figure(1)
-    plt.xlabel("Flow Length (us)")
+    plt.xlabel("Flow Completion Time (us)")
     plt.ylabel("CDF")
     graph_utils.legend_bottom_right()
+    graph_utils.set_yax_max_one()
     graph_utils.set_non_negative_axes()
     graph_utils.set_ticks()
     filename = args.output_name + '_flow_lengths.eps'

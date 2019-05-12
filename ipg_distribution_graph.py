@@ -95,20 +95,22 @@ if __name__ == "__main__":
 
     plt.figure(1)
     plt.xlim([min(outgoing_ipg_gaps), nintyninth_percentile])
-    plt.ylabel("Fraction of Packets")
+    plt.ylabel("CDF")
     plt.xlabel("IPG (ns)")
     graph_utils.legend_bottom_right()
     graph_utils.set_non_negative_axes()
+    graph_utils.set_yax_max_one()
     graph_utils.set_ticks()
     plt.savefig(output_label + '_ipg_gaps_clients.eps', format='eps')
     print "Done! File is in ", output_label + '_ipg_gaps_clients.eps'
 
     plt.figure(2)
     plt.xlim([min(outgoing_ipg_gaps), nintyninth_percentile])
-    plt.ylabel("Fraction of Packets")
+    plt.ylabel("CDF")
     plt.xlabel("IPG (ns)")
     graph_utils.legend_bottom_right()
     graph_utils.set_non_negative_axes()
+    graph_utils.set_yax_max_one()
     graph_utils.set_ticks()
     plt.savefig(output_label + '_ipg_gaps_server.eps', format='eps')
     print "Done! File is in ", output_label + '_ipg_gaps_server.eps'

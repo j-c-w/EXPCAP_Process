@@ -35,6 +35,7 @@ if __name__ == "__main__":
     plt.xlabel("Bandwidth Used (Mbps)")
     plt.ylabel("CDF")
     graph_utils.legend_bottom_right()
+    graph_utils.set_yax_max_one()
     graph_utils.set_non_negative_axes()
     graph_utils.set_ticks()
     if len(args.input_files) * len(args.window_sizes) > 1:

@@ -90,6 +90,7 @@ if __name__ == "__main__":
     plt.legend()
     graph_utils.set_ticks()
     graph_utils.set_non_negative_axes()
+    graph_utils.set_integer_ticks()
     plt.savefig(args.output_name + '_client_sizes_through_time.eps', format='eps')
     print "Done! File is in ", args.output_name + '_client_sizes_through_time.eps'
 
@@ -100,5 +101,6 @@ if __name__ == "__main__":
     plt.legend()
     graph_utils.set_ticks()
     graph_utils.set_non_negative_axes()
+    graph_utils.set_integer_ticks()
     plt.savefig(args.output_name + '_all_times.eps', format='eps')
     print "Done! File is in ", args.output_name + '_all_times.eps'

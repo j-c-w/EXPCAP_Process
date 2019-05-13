@@ -9,7 +9,6 @@ echo "--delete-cache: delete cached files when we are done.  Good for running on
 echo "--dry-run: Just print the files we are going to extract and the commands we would run."
 echo "--config <file> : use a different config"
 l=""
-read "l?<Enter to continue>"
 
 declare -a copy_files
 declare -a extract_all
@@ -21,6 +20,11 @@ declare -a config
 zparseopts -D -E -copy+=copy_files -extract-all=extract_all -delete-cache=delete_cache -plot-only=plot_only -dry-run=dry_run -config:=config
 
 typeset -a files_to_extract
+
+if [[ $# -ne 0 ]]; then
+	echo "Unexpected argument!"
+	exit 1
+fi
 
 for arg in ${copy_files[@]}; do
 	if [[ $arg != "--copy" ]]; then

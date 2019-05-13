@@ -37,6 +37,7 @@ class ExpcapPacket(object):
         if self.ethertype == "ffff":
             print "Expcap format packet: do not use."
             self.padding_packet = True
+            self.packet_data = None
             return
         else:
             self.padding_packet = False
@@ -46,6 +47,7 @@ class ExpcapPacket(object):
             print self.ethertype
             print input_string
             print self.ethertype
+            self.packet_data = None
             return
 
         # And the IP Source and destination addresses.
@@ -79,6 +81,8 @@ class ExpcapPacket(object):
             self.fully_processed_tcp = True
         else:
             self.is_tcp = False
+
+        self.packet_data = None
 
 
 if __name__ == "__main__":

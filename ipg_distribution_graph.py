@@ -7,7 +7,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import process_csv
 import process_txt
-import process_pcap
 import expcap_metadata
 
 if __name__ == "__main__":

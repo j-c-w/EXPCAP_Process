@@ -83,7 +83,8 @@ if __name__ == "__main__":
     graph_utils.set_yax_max_one()
     graph_utils.set_non_negative_axes()
     graph_utils.set_ticks()
-    plt.savefig(args.output_name + '_outgoing_sizes.eps', format='eps')
+    filename = args.output_name + '_outgoing_sizes'
+    graph_utils.save_cdf(filename)
     print "Done! File is in ", args.output_name + '_outgoing_sizes.eps'
 
     plt.figure(2)
@@ -94,7 +95,8 @@ if __name__ == "__main__":
     graph_utils.set_yax_max_one()
     graph_utils.set_ticks()
     graph_utils.set_integer_ticks()
-    plt.savefig(args.output_name + '_incoming_sizes.eps', format='eps')
+    filename = args.output_name + '_incoming_sizes'
+    graph_utils.save_cdf(filename)
     print "Done! File is in ", args.output_name + '_incoming_sizes.eps'
 
     # Plot the packet sizes for both.
@@ -106,5 +108,6 @@ if __name__ == "__main__":
     graph_utils.set_non_negative_axes()
     graph_utils.set_ticks()
     graph_utils.set_integer_ticks()
-    plt.savefig(args.output_name + '_all_sizes.eps', format='eps')
+    filename = args.output_name + '_all_sizes'
+    graph_utils.save_cdf(filename)
     print "Done! File is in ", args.output_name + '_all_sizes.eps'

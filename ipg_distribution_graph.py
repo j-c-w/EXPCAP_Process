@@ -100,7 +100,8 @@ if __name__ == "__main__":
     graph_utils.set_non_negative_axes()
     graph_utils.set_yax_max_one()
     graph_utils.set_ticks()
-    plt.savefig(output_label + '_ipg_gaps_clients.eps', format='eps')
+    filename = output_label + '_ipg_gaps_clients'
+    graph_utils.save_cdf(filename)
     print "Done! File is in ", output_label + '_ipg_gaps_clients.eps'
 
     plt.figure(2)
@@ -111,5 +112,7 @@ if __name__ == "__main__":
     graph_utils.set_non_negative_axes()
     graph_utils.set_yax_max_one()
     graph_utils.set_ticks()
-    plt.savefig(output_label + '_ipg_gaps_server.eps', format='eps')
+    filename = output_label + '_ipg_gaps_server'
+    graph_utils.save_cdf(filename)
+
     print "Done! File is in ", output_label + '_ipg_gaps_server.eps'

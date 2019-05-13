@@ -89,8 +89,9 @@ if __name__ == "__main__":
     graph_utils.set_non_negative_axes()
     graph_utils.set_integer_ticks()
     graph_utils.set_ticks()
-    plt.savefig(args.output_name + "_burst_length_cdf_incoming.eps")
-    print "Output in ", args.output_name + "_burst_length_cdf_incoming.eps"
+    filename = args.output_name + "_burst_length_cdf_incoming"
+    graph_utils.save_cdf(filename)
+    print "Output in ", args.output_name + "_burst_length_cdf_incoming"
 
     plt.figure(2)
     plt.xlabel("Burst Bandwidth (Mbps)")
@@ -99,7 +100,8 @@ if __name__ == "__main__":
     graph_utils.set_yax_max_one()
     graph_utils.set_non_negative_axes()
     graph_utils.set_ticks()
-    plt.savefig(args.output_name + "_burst_bandwidth_cdf_incoming.eps")
+    filename = args.output_name + "_burst_bandwidth_cdf_incoming"
+    graph_utils.save_cdf(filename)
     print "Output in ", args.output_name + "_burst_bandwidth_cdf_incoming.eps"
 
     plt.figure(3)
@@ -110,7 +112,8 @@ if __name__ == "__main__":
     graph_utils.set_non_negative_axes()
     graph_utils.set_integer_ticks()
     graph_utils.set_ticks()
-    plt.savefig(args.output_name + "_burst_length_bandwidth_outgoing.eps")
+    filename = args.output_name + "_burst_length_bandwidth_outgoing"
+    graph_utils.save_cdf(filename)
     print "Output in ", args.output_name + "_burst_length_bandwidth_outgoing.eps"
 
     plt.figure(4)
@@ -120,5 +123,6 @@ if __name__ == "__main__":
     graph_utils.set_non_negative_axes()
     graph_utils.set_yax_max_one()
     graph_utils.set_ticks()
-    plt.savefig(args.output_name + "_burst_bandwidth_cdf_outgoing.eps")
+    filename = args.output_name + "_burst_bandwidth_cdf_outgoing"
+    graph_utils.save_cdf(filename)
     print "Output in ", args.output_name + "_burst_bandwidth_cdf_outgoing.eps"

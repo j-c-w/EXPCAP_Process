@@ -43,6 +43,6 @@ if __name__ == "__main__":
 
     if args.title:
         plt.title(args.title)
-    filename = args.output_name + '.eps'
-    plt.savefig(filename, format='eps')
+    filename = args.output_name + '_bandwidth_cdf'
+    graph_utils.save_cdf(filename)
     print "Done! File is in ", filename

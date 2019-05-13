@@ -77,7 +77,8 @@ if __name__ == "__main__":
     graph_utils.set_yax_max_one()
     graph_utils.set_non_negative_axes()
     graph_utils.set_ticks()
-    plt.savefig(args.output_name + '_outgoing_interarrival.eps', format='eps')
+    filename = args.output_name + '_outgoing_interarrival'
+    graph_utils.save_cdf(filename)
     print "Done! File is in ", args.output_name + '_outgoing_interarrival.eps'
 
     # Do the incoming packets.
@@ -88,5 +89,6 @@ if __name__ == "__main__":
     graph_utils.set_non_negative_axes()
     graph_utils.set_ticks()
     plt.xlabel("Inter-arrival time (ns)")
-    plt.savefig(args.output_name + '_incoming_interarrival.eps', format='eps')
+    filename = args.output_name + '_incoming_interarrival'
+    graph_utils.save_cdf(filename)
     print "Done! File is in ", args.output_name + '_incoming_interarrival.eps'

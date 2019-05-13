@@ -2,7 +2,7 @@
 
 set -eu
 
-echo "Usage: $0 [--extract-all] [--delete-cache] [--plot-only AWK search string] [--copy file] [--copy file] ..."
+echo "Usage: $0 [--extract-all] [--delete-cache] [--plot-only AWK search string] [--copy file] [--copy file] [--limit-packets NUM]..."
 echo "--extract-all extracts all files.  --copy should be given a list of particular benchmarks (in the format of 'benchmark label'.  All items in this list have their caches cleared and are re-extracted.)"
 echo "The first time you call this script, you will need to pass --extract all"
 echo "--delete-cache: delete cached files when we are done.  Good for running on small disks."
@@ -16,8 +16,9 @@ declare -a delete_cache
 declare -a plot_only
 declare -a dry_run
 declare -a config
+declare -a limit_packets
 
-zparseopts -D -E -copy+=copy_files -extract-all=extract_all -delete-cache=delete_cache -plot-only=plot_only -dry-run=dry_run -config:=config
+zparseopts -D -E -copy+=copy_files -extract-all=extract_all -delete-cache=delete_cache -plot-only=plot_only -dry-run=dry_run -config:=config -limit-packets:=limit_packets
 
 typeset -a files_to_extract
 
@@ -53,6 +54,12 @@ function decompress() {
 
 	# Get the CSV file out.
 	/root/jcw78/scripts/hpt/extract_csv.sh $dst.expcap $dst
+
+	# If we wanted to shorten the file, then do that:
+	if [[ ${#limit_packets} -gt 0 ]]; then
+		head -n ${limit_packets[2]} $dst > $dst.tmp
+		mv $dst.tmp $dst
+	fi
 
 	# Delete the expcap file.
 	rm $dst.expcap

@@ -232,6 +232,12 @@ def extract_windows(filename, window_size, count=None, to_ip=None, from_ip=None)
     debug = False
     packet_groups = []
     windows = []
+
+    if len(expcap_metadatas) == 0:
+        print "Error: No expcap metadatas found for file ", filename
+        print "With restrictions: to ip:", to_ip
+        print "from_ip:", from_ip
+        return []
     
     # First, get the start and end time.  Note that the
     # packets are sorted by arrival time.

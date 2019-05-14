@@ -1,8 +1,8 @@
 import argparse
-import graph_utils
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
+import graph_utils
 import numpy as np
 import process_csv
 

@@ -43,6 +43,6 @@ if __name__ == "__main__":
     graph_utils.set_yax_max_one()
     graph_utils.set_non_negative_axes()
     graph_utils.set_ticks()
-    filename = args.output_name + '_flow_lengths'
-    graph_utils.save_cdf(filename)
+    filename = args.output_name + '_flow_lengths.eps'
+    plt.savefig(filename)
     print "Done! File is in ", filename

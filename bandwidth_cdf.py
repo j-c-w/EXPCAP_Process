@@ -26,10 +26,10 @@ if __name__ == "__main__":
             if pcap_file.endswith('.csv'):
                 incoming_x_values, incoming_bandwidths = \
                         process_csv.extract_bandwidths(pcap_file, window_size,
-                                                       to_ip=args.server_ip)
+                                                       to_ip=args.server_ip, count=args.packets)
                 outgoing_x_values, outgoing_bandwidths = \
                     process_csv.extract_bandwidths(pcap_file, window_size,
-                                                   from_ip=args.server_ip)
+                                                   from_ip=args.server_ip, count=args.packets)
 
             for i in range(len(incoming_bandwidths)):
                 incoming_bandwidths[i] = float(incoming_bandwidths[i])

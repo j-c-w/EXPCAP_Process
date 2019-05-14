@@ -21,6 +21,7 @@ def microburst_analyze(bursts, identifier, pcap_file, label, id_base):
     bins = np.append(np.linspace(min(lengths), max(lengths), 1000), np.inf)
     plt.figure(1 + id_base)
     plt.hist(lengths, bins=bins, cumulative=True, histtype='step', normed=True, label=label)
+    plt.savefig('test.eps')
 
     # Plot a CDF of the bandwidth achieved in each microburst.
     bandwidths = []
@@ -33,7 +34,6 @@ def microburst_analyze(bursts, identifier, pcap_file, label, id_base):
 
     for i in range(len(bandwidths)):
         bandwidths[i] = float(bandwidths[i])
-    print bandwidths
 
     plt.figure(2 + id_base)
     bins = np.append(np.linspace(min(bandwidths), max(bandwidths), 1000), np.inf)
@@ -89,9 +89,9 @@ if __name__ == "__main__":
     graph_utils.set_non_negative_axes()
     graph_utils.set_integer_ticks()
     graph_utils.set_ticks()
-    filename = args.output_name + "_burst_length_cdf_incoming"
-    graph_utils.save_cdf(filename)
-    print "Output in ", args.output_name + "_burst_length_cdf_incoming"
+    filename = args.output_name + "_burst_length_cdf_incoming.eps"
+    plt.savefig(filename)
+    print "Output in ", args.output_name + "_burst_length_cdf_incoming.eps"
 
     plt.figure(2)
     plt.xlabel("Burst Bandwidth (Mbps)")
@@ -101,7 +101,7 @@ if __name__ == "__main__":
     graph_utils.set_non_negative_axes()
     graph_utils.set_ticks()
     filename = args.output_name + "_burst_bandwidth_cdf_incoming"
-    graph_utils.save_cdf(filename)
+    plt.savefig(filename + '.eps')
     print "Output in ", args.output_name + "_burst_bandwidth_cdf_incoming.eps"
 
     plt.figure(3)
@@ -112,8 +112,8 @@ if __name__ == "__main__":
     graph_utils.set_non_negative_axes()
     graph_utils.set_integer_ticks()
     graph_utils.set_ticks()
-    filename = args.output_name + "_burst_length_bandwidth_outgoing"
-    graph_utils.save_cdf(filename)
+    filename = args.output_name + "_burst_length_bandwidth_outgoing.eps"
+    plt.savefig(filename)
     print "Output in ", args.output_name + "_burst_length_bandwidth_outgoing.eps"
 
     plt.figure(4)
@@ -123,6 +123,6 @@ if __name__ == "__main__":
     graph_utils.set_non_negative_axes()
     graph_utils.set_yax_max_one()
     graph_utils.set_ticks()
-    filename = args.output_name + "_burst_bandwidth_cdf_outgoing"
-    graph_utils.save_cdf(filename)
+    filename = args.output_name + "_burst_bandwidth_cdf_outgoing.eps"
+    plt.savefig(filename)
     print "Output in ", args.output_name + "_burst_bandwidth_cdf_outgoing.eps"

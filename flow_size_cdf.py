@@ -44,6 +44,6 @@ if __name__ == "__main__":
     graph_utils.set_integer_ticks()
     graph_utils.set_non_negative_axes()
     graph_utils.set_ticks()
-    filename = args.output_name + '_flow_sizes'
-    graph_utils.save_cdf(filename)
+    filename = args.output_name + '_flow_sizes.eps'
+    plt.savefig(filename)
     print "Done! File is in ", filename

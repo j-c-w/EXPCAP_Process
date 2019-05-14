@@ -7,7 +7,7 @@ SPINE_COLOR = 'gray'
 
 
 def set_integer_ticks():
-    ax = plt.figure().gca()
+    ax = plt.gca()
     ax.xaxis.set_major_locator(MaxNLocator(integer=True))
 
 
@@ -86,7 +86,7 @@ def latexify(fig_width=None, fig_height=None, columns=2):
               "so will reduce to" + MAX_HEIGHT_INCHES + "inches.")
         fig_height = MAX_HEIGHT_INCHES
 
-    params = {'backend': 'ps',
+    params = {# 'backend': 'ps',
               'text.latex.preamble': ['\\usepackage{gensymb}'],
               'axes.labelsize': 10, # fontsize for x and y labels (was 10)
               'axes.titlesize': 10,

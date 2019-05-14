@@ -1,4 +1,5 @@
 from decimal import *
+import time
 from expcap_metadata import ExpcapPacket
 import numpy as np
 import os
@@ -80,10 +81,13 @@ def extract_expcap_metadatas(filename, count=None, to_ip=None, from_ip=None):
                 lines = f.readlines()[1:]
 
             metadata = []
+            start_time = time.time()
             for line in lines:
                 expcap_packet = ExpcapPacket(line)
                 if expcap_packet.padding_packet or not expcap_packet.fully_processed_ip:
-                    print "Not adding packet"
+                    print "Extracted: ", len(metadata), "so far"
+                    current_time = time.time()
+                    print "Rate is ", len(metadata) / (current_time - start_time), "pps"
                     continue
                 metadata.append(expcap_packet)
 
@@ -91,26 +95,30 @@ def extract_expcap_metadatas(filename, count=None, to_ip=None, from_ip=None):
         last_loaded = metadata[:]
         last_loaded_from = filename
 
+    deleted_count = 0
     if to_ip:
-        index = 0
         hex_ip = ip_to_hex(to_ip)
-        while index < len(metadata):
+        for index in range(len(metadata)):
             if metadata[index].dst_addr != hex_ip:
-                del metadata[index]
-            else:
-                index += 1
+                deleted_count += 1
+                metadata[index] = None
 
     if from_ip:
-        index = 0
         hex_ip = ip_to_hex(from_ip)
-        while index < len(metadata):
+        for index in range(len(metadata)):
             if metadata[index].src_addr != hex_ip:
-                del metadata[index]
-            else:
-                index += 1
+                deleted_count += 1
+                metadata[index] = None
 
-    print "Using ", len(metadata), "packets"
-    return metadata
+    all_data = [None] * (len(metadata) - deleted_count)
+    index = 0
+    for data in metadata:
+        if data:
+            all_data[index] = data
+            index += 1
+
+    print "Using ", len(all_data), "packets"
+    return all_data
 
 
 def extract_sizes(filename, count=None, to_ip=None, from_ip=None):
@@ -500,6 +508,7 @@ def extract_flow_sizes(filename):
 
     if len(flows) > 0:
         print "Warning: Saw ", len(flows), " SYNs for flows that weren't closed"
+
     with open(cache_name, 'w') as f:
         f.write(','.join([str(length) for length in flow_sizes]))
 

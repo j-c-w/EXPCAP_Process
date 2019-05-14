@@ -23,7 +23,7 @@ if __name__ == "__main__":
     for (pcap_file, label) in args.input_files:
         for (window_size, label_suffix) in args.window_sizes:
             if pcap_file.endswith('.csv'):
-                x_values, usages = process_csv.extract_bandwidths(pcap_file, window_size)
+                x_values, usages = process_csv.extract_bandwidths(pcap_file, window_size, count=args.packets)
             # Recenter the xvalues around zero.
             zero_value = x_values[0][0]
             for i in range(len(x_values)):
@@ -43,6 +43,6 @@ if __name__ == "__main__":
 
     if args.title:
         plt.title(args.title)
-    filename = args.output_name + '_bandwidth_cdf'
-    graph_utils.save_cdf(filename)
+    filename = args.output_name + '_bandwidth_cdf.eps'
+    plt.savefig(filename)
     print "Done! File is in ", filename

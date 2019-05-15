@@ -109,7 +109,7 @@ function decompress_files() {
 
 	# Copy and extract every file to the target folder
 	if [[ ${#dry_run} == 0 ]] && [[ ${#files_to_decompress} -gt 0 ]]; then
-		parallel -j 8 -n 2 "cp {1} {2}.expcap.bz2; bunzip2 {2}.expcap.bz2; /root/jcw78/scripts/hpt/extract_csv.sh {2}.expcap {2}; " ::: ${files_to_decompress[@]}
+		parallel -j 8 -n 2 "cp {1} {2}.expcap.bz2; bunzip2 {2}.expcap.bz2; /root/jcw78/scripts/hpt/extract_csv.sh {2}.expcap {2} || true; " ::: ${files_to_decompress[@]}
 	fi
 }
 

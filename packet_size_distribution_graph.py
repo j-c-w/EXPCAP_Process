@@ -23,8 +23,11 @@ def main(args):
     args = parser.parse_args(args)
 
     outgoing_graph = plt.figure(1)
+    plt.clf()
     incoming_graph = plt.figure(2)
+    plt.clf()
     both_graph = plt.figure(3)
+    plt.clf()
     for (pcap_file, label) in args.input_files:
         if pcap_file.endswith('.csv'):
             outgoing_packet_sizes = process_csv.extract_sizes(pcap_file, from_ip=args.server_ip)

@@ -24,8 +24,11 @@ def main(args):
     args = parser.parse_args(args)
 
     server_graph = plt.figure(1)
+    plt.clf()
     client_graph = plt.figure(2)
+    plt.clf()
     all_graph = plt.figure(3)
+    plt.clf()
 
     for pcap_file, label in args.input_files:
         for (window, window_label) in args.window_size:

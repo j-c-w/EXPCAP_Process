@@ -23,6 +23,11 @@ def main(args):
 
     args = parser.parse_args(args)
 
+    plt.figure(1)
+    plt.clf()
+    plt.figure(2)
+    plt.clf()
+
     for pcap_file, label in args.input_files:
         for window_size, label_suffix in args.window_size:
             if pcap_file.endswith('.csv'):
@@ -40,6 +45,7 @@ def main(args):
             max_lim = max(incoming_bandwidths)
             small_diff = (min_lim + max_lim) / 10000.0
             bins = np.append(np.linspace(min_lim, max_lim + small_diff, 1000), np.inf)
+            print bins
             plt.figure(1)
             plt.hist(incoming_bandwidths, cumulative=True, bins=bins, histtype='step', normed=True, label=label + ' ' + label_suffix)
 

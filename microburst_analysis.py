@@ -58,6 +58,14 @@ def main(args):
             help="Number of packets to process from a pcap file")
 
     args = parser.parse_args(args)
+    plt.figure(1)
+    plt.clf()
+    plt.figure(2)
+    plt.clf()
+    plt.figure(3)
+    plt.clf()
+    plt.figure(4)
+    plt.clf()
 
     for pcap_file, label in args.input_files:
         for allowed_ipg, burst_size, label_suffix in args.thresholds:

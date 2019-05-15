@@ -24,6 +24,11 @@ def main(args):
 
     args = parser.parse_args(args)
 
+    plt.figure(1)
+    plt.clf()
+    plt.figure(2)
+    plt.clf()
+
     pcap_files = args.input_files
     output_label = args.output_name
 

@@ -19,6 +19,8 @@ def main(args):
             help="Number of packets to process from a pcap file")
 
     args = parser.parse_args(args)
+    plt.figure(1)
+    plt.clf()
 
     for pcap_file, label in args.input_files:
         if pcap_file.endswith('.csv'):

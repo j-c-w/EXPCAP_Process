@@ -1,19 +1,16 @@
 import argparse
 import threading
 import shlex
-import arrival_time_difference_plot
 import bandwidth_cdf
 import bandwidth_distribution
 import bandwidth_through_time
 import flow_length_cdf
 import flow_size_cdf
 import inter_arrival_distribution_graph
-import interarrival_statistics
 import ipg_distribution_graph
 import microburst_analysis
 import packet_size_distribution_graph
 import packet_size_distribution_through_time
-import plot_arrival_times
 
 entry_semaphore = None
 
@@ -25,9 +22,7 @@ def draw_graph(name, commands):
     print "(Using ", name, ")"
 
     try:
-        if name == "arrival_time_difference_plot.py":
-            arrival_time_difference_plot.main(commands)
-        elif name == "bandwidth_cdf.py":
+        if name == "bandwidth_cdf.py":
             bandwidth_cdf.main(commands)
         elif name == "bandwidth_distribution.py":
             bandwidth_distribution.main(commands)
@@ -39,8 +34,6 @@ def draw_graph(name, commands):
             flow_size_cdf.main(commands)
         elif name == "inter_arrival_distribution_graph.py":
             inter_arrival_distribution_graph.main(commands)
-        elif name == "interarrival_statistics.py":
-            interarrival_statistics.main(commands)
         elif name == "ipg_distribution_graph.py":
             ipg_distribution_graph.main(commands)
         elif name == "microburst_analysis.py":
@@ -49,8 +42,6 @@ def draw_graph(name, commands):
             packet_size_distribution_graph.main(commands)
         elif name == "packet_size_distribution_through_time.py":
             packet_size_distribution_through_time.main(commands)
-        elif name == "plot_arrival_times.py":
-            plot_arrival_times.main(commands)
         else:
             print "Error: Unkown filename", name
     finally:

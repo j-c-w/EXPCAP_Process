@@ -5,6 +5,7 @@ import numpy as np
 import os
 import re
 import sys
+import pickle
 import glob
 import flock
 import threading
@@ -45,7 +46,7 @@ def windows_list_from_string(windows_string):
     return windows
 
 
-def generate_cache_name(input_file, name, to_ip, from_ip, count, window_size=None):
+def generate_cache_name(input_file, name, to_ip, from_ip, count, window_size=None, packet_threshold=None, ipg_threshold=None):
     name = input_file + name
 
     if to_ip:
@@ -53,7 +54,11 @@ def generate_cache_name(input_file, name, to_ip, from_ip, count, window_size=Non
     if from_ip:
         name = name + '_from_ip_' + from_ip
     if count:
-        name = name + '_packets_' + count
+        name = name + '_packets_' + str(count)
+    if packet_threshold:
+        name = name + '_packet_threshold_' + str(packet_threshold)
+    if ipg_threshold:
+        name = name + '_ipg_threshold_' + str(ipg_threshold)
     if window_size:
         name = name + '_window_size_' + window_size
 
@@ -189,6 +194,14 @@ processing anyway.  This function returns the whole
 packet at each stage.
 """
 def find_bursts(filename, count=None, ipg_threshold=20000, packet_threshold=20, to_ip=None, from_ip=None):
+    cache_name = generate_cache_name(filename, '_bursts', to_ip, from_ip, count, ipg_threshold=ipg_threshold, packet_threshold=packet_threshold)
+    if os.path.exists(cache_name):
+        print "Found a cache!  Going to use it!"
+        with open(cache_name) as f:
+            with flock.Flock(f, flock.LOCK_EX) as lock:
+                bursts = pickle.load(f)
+                return bursts
+
     metadatas = extract_expcap_metadatas(filename, count=count, to_ip=to_ip, from_ip=from_ip)
 
     if len(metadatas) == 0:
@@ -210,9 +223,22 @@ def find_bursts(filename, count=None, ipg_threshold=20000, packet_threshold=20, 
                 bursts.append(current_burst)
                 current_burst = []
         time = next_time
-    
+
     if len(current_burst) > packet_threshold:
         bursts.append(current_burst)
+
+    total_bursts = sum([len(burst) for burst in bursts])
+    # I think we're storing about 100 bytes of info per packet.
+    # Arbitrarily, let's try to keep the pickle size below
+    # 300 MB.
+    # So, that means we need less than 3 million total packets
+    # to be able to save this to the disk.
+    if total_bursts < 3000000:
+        with open(cache_name, 'w') as f:
+            with flock.Flock(f, flock.LOCK_EX) as lock:
+                pickle.dump(bursts, f)
+    else:
+        print "WARNING: Burst too big, not caching."
 
     return bursts
 

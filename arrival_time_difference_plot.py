@@ -9,12 +9,13 @@ import process_txt
 import process_pcap
 import sys
 
-if __name__ == "__main__":
+
+def main(args):
     parser = argparse.ArgumentParser()
     parser.add_argument("first_file")
     parser.add_argument("second_file")
 
-    args = parser.parse_args()
+    args = parser.parse_args(args)
 
     first_file = args.first_file
     second_file = args.second_file
@@ -57,3 +58,7 @@ if __name__ == "__main__":
         os.path.basename(second_file) + '.eps'
     plt.savefig(filename)
     print "Figure saved in ", filename
+
+
+if __name__ == "__main__":
+    main(sys.argv[1:])

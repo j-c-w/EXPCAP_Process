@@ -6,8 +6,7 @@ import matplotlib.pyplot as plt
 import graph_utils
 import numpy as np
 import process_csv
-import process_txt
-import expcap_metadata
+import sys
 
 
 def microburst_analyze(bursts, identifier, pcap_file, label, id_base):
@@ -40,7 +39,7 @@ def microburst_analyze(bursts, identifier, pcap_file, label, id_base):
     plt.hist(bandwidths, bins=bins, cumulative=True, histtype='step', normed=True, label=label)
 
 
-if __name__ == "__main__":
+def main(args):
     parser = argparse.ArgumentParser()
     parser.add_argument('--input-file', dest='input_files', nargs=2, action='append', required=True, help="csv file to plot.  Needs a label as a second argument.")
     parser.add_argument('--thresholds', dest='thresholds', help="This should be a three-tuple.  The firs tiem should be how long between packets (ps) for sequential packets  to be counted in the same burst.  The second item should be how many packets must arrive before  a bursst starts.  The last item should be a label.", required=True, action='append', nargs=3)
@@ -53,7 +52,7 @@ if __name__ == "__main__":
             default=None, dest='packets',
             help="Number of packets to process from a pcap file")
 
-    args = parser.parse_args()
+    args = parser.parse_args(args)
 
     for pcap_file, label in args.input_files:
         for allowed_ipg, burst_size, label_suffix in args.thresholds:
@@ -126,3 +125,7 @@ if __name__ == "__main__":
     filename = args.output_name + "_burst_bandwidth_cdf_outgoing.eps"
     plt.savefig(filename)
     print "Output in ", args.output_name + "_burst_bandwidth_cdf_outgoing.eps"
+
+
+if __name__ == "__main__":
+    main(sys.argv[1:])

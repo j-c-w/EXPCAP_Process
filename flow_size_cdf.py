@@ -5,8 +5,10 @@ import matplotlib.pyplot as plt
 import graph_utils
 import numpy as np
 import process_csv
+import sys
 
-if __name__ == "__main__":
+
+def main(args):
     parser = argparse.ArgumentParser()
     parser.add_argument('--input-file', dest='input_files', nargs=2, action='append', required=True, help="csv file to plot.  Needs a label as a second argument.")
     parser.add_argument('--keep-temps', dest='keep_temps', default=False, action='store_true', help="Keep temp files")
@@ -17,7 +19,7 @@ if __name__ == "__main__":
             default=None, dest='packets',
             help="Number of packets to process from a pcap file")
 
-    args = parser.parse_args()
+    args = parser.parse_args(args)
 
     for pcap_file, label in args.input_files:
         if pcap_file.endswith('.csv'):
@@ -47,3 +49,7 @@ if __name__ == "__main__":
     filename = args.output_name + '_flow_sizes.eps'
     plt.savefig(filename)
     print "Done! File is in ", filename
+
+
+if __name__ == "__main__":
+    main(sys.argv[1:])

@@ -6,10 +6,12 @@ import matplotlib.pyplot as plt
 import graph_utils
 import numpy as np
 import process_csv
+import sys
 
-if __name__ == "__main__":
+
+def main(args):
     parser = argparse.ArgumentParser()
-    parser.add_argument('--server', dest='server_ip', help="The IP address of the server", required=True)
+    parser.add_argument('--server', dest='server_ip', help="The IP address of the server", required=False, default=None)
     parser.add_argument('--input-file', dest='input_files', nargs=2, action='append', required=True, help="csv file to plot.  Needs a label as a second argument.")
     parser.add_argument('--keep-temps', dest='keep_temps', default=False, action='store_true', help="Keep temp files")
     parser.add_argument('--output-name', dest='output_name', required=True)
@@ -19,7 +21,7 @@ if __name__ == "__main__":
             default=None, dest='packets',
             help="Number of packets to process from a pcap file")
 
-    args = parser.parse_args()
+    args = parser.parse_args(args)
 
     for pcap_file, label in args.input_files:
         if pcap_file.endswith('.csv'):
@@ -29,9 +31,9 @@ if __name__ == "__main__":
                 process_csv.extract_deltas(pcap_file, from_ip=args.server_ip)
 
         # Convert to ns before starting:
-        for i in range(len(timestamp_deltas_incoming)):
+        for i in xrange(len(timestamp_deltas_incoming)):
             timestamp_deltas_incoming[i] = float(Decimal(1000000000.0) * timestamp_deltas_incoming[i])
-        for i in range(len(timestamp_deltas_outgoing)):
+        for i in xrange(len(timestamp_deltas_outgoing)):
             timestamp_deltas_outgoing[i] = float(Decimal(1000000000.0) * timestamp_deltas_outgoing[i])
 
         # Do the outgoing packets.
@@ -92,3 +94,7 @@ if __name__ == "__main__":
     filename = args.output_name + '_incoming_interarrival.eps'
     plt.savefig(filename)
     print "Done! File is in ", args.output_name + '_incoming_interarrival'
+
+
+if __name__ == "__main__":
+    main(sys.argv[1:])

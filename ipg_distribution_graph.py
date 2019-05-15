@@ -5,11 +5,12 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import graph_utils
 import numpy as np
+import graph_utils
 import process_csv
-import process_txt
-import expcap_metadata
+import sys
 
-if __name__ == "__main__":
+
+def main(args):
     parser = argparse.ArgumentParser()
     parser.add_argument('--input-file', dest='input_files', nargs=2, action='append', required=True, help="csv file to plot.  Needs a label as a second argument.")
     parser.add_argument('--keep-temps', dest='keep_temps', default=False, action='store_true', help="Keep temp files")
@@ -18,18 +19,20 @@ if __name__ == "__main__":
     parser.add_argument('--title', dest='title', required=False, default=None)
     # This is to avoid issues with tcpdump hanging.
     parser.add_argument('--packets', type=int, required=False,
-            default=None, dest='packets',
-            help="Number of packets to process from a pcap file")
+                        default=None, dest='packets',
+                        help="Number of packets to process from a pcap file")
 
-    args = parser.parse_args()
+    args = parser.parse_args(args)
 
     pcap_files = args.input_files
     output_label = args.output_name
 
     for (pcap_file, label) in pcap_files:
         if pcap_file.endswith('.csv'):
-            incoming_ipg_gaps = process_csv.extract_ipgs(pcap_file, to_ip=args.server_ip)
-            outgoing_ipg_gaps = process_csv.extract_ipgs(pcap_file, from_ip=args.server_ip)
+            incoming_ipg_gaps = \
+                process_csv.extract_ipgs(pcap_file, to_ip=args.server_ip)
+            outgoing_ipg_gaps = \
+                process_csv.extract_ipgs(pcap_file, from_ip=args.server_ip)
 
         range = [min(incoming_ipg_gaps), max(incoming_ipg_gaps)]
         print "Dealing with incoming IPG gaps"
@@ -56,12 +59,16 @@ if __name__ == "__main__":
 
         print nintyninth_percentile
 
-        # Avoid issues witht the CDF line decreasing to zero after the data is plotted.
-        bins = np.linspace(min(incoming_ipg_gaps), max(incoming_ipg_gaps) + 0.00000001, 1000)
+        # Avoid issues witht the CDF line decreasing to zero after the data is
+        # plotted.
+        bins = \
+            np.linspace(min(incoming_ipg_gaps),
+                        max(incoming_ipg_gaps) + 0.00000001, 1000)
         bins = np.append(bins, np.inf)
 
         plt.figure(1)
-        plt.hist(incoming_ipg_gaps, bins=bins, cumulative=True, histtype='step', normed=True, label=label)
+        plt.hist(incoming_ipg_gaps, bins=bins, cumulative=True,
+                 histtype='step', normed=True, label=label)
 
         # Now do the outgoing.
         # Remove anything greater than the 99th percentile to stop
@@ -78,13 +85,13 @@ if __name__ == "__main__":
 
         # Avoid issues witht the CDF line decreasing to zero after the data
         # is plotted.
-        bins = np.linspace(min(outgoing_ipg_gaps), max(outgoing_ipg_gaps), 1000)
+        bins = \
+            np.linspace(min(outgoing_ipg_gaps), max(outgoing_ipg_gaps), 1000)
         bins = np.append(bins, np.inf)
 
         plt.figure(2)
         plt.hist(outgoing_ipg_gaps, bins=bins, cumulative=True,
                  histtype='step', normed=True, label=label)
-
 
     if args.title:
         plt.figure(1)
@@ -116,3 +123,7 @@ if __name__ == "__main__":
     plt.savefig(filename)
 
     print "Done! File is in ", output_label + '_ipg_gaps_server.eps'
+
+
+if __name__ == "__main__":
+    main(sys.argv[1:])

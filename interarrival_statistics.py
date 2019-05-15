@@ -3,12 +3,13 @@ import numpy as np
 import process_csv
 import process_txt
 import process_pcap
+import sys
 
-if __name__ == "__main__":
+def main(args):
     parser = argparse.ArgumentParser()
     parser.add_argument('file')
 
-    args = parser.parse_args()
+    args = parser.parse_args(args)
     file = args.file
 
     if file.endswith('.pcap'):
@@ -20,3 +21,7 @@ if __name__ == "__main__":
 
     print "Mean delta: ", np.mean(times), ", Median delta: ", np.median(times),
     print ", deviation: ", np.std(times)
+
+
+if __name__ == "__main__":
+    main(sys.argv[1:])

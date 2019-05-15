@@ -5,8 +5,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 import process_csv
 import graph_utils
+import sys
 
-if __name__ == "__main__":
+def main(args):
     parser = argparse.ArgumentParser()
     parser.add_argument('--input-file', dest='input_files', nargs=2, action='append', required=True, help="csv file to plot.  Needs a label as a second argument.")
     parser.add_argument('--window-size', nargs=2, dest='window_size', action='append', help="How long to average over.  In ps. (Also needs a label)", required=True)
@@ -19,7 +20,7 @@ if __name__ == "__main__":
             default=None, dest='packets',
             help="Number of packets to process from a pcap file")
 
-    args = parser.parse_args()
+    args = parser.parse_args(args)
 
     for (pcap_file, label) in args.input_files:
         for (window_size, label_suffix) in args.window_size:
@@ -76,3 +77,7 @@ if __name__ == "__main__":
 
     plt.savefig(filename, format='eps')
     print "Done! File is in ", filename
+
+
+if __name__ == "__main__":
+    main(sys.argv[1:])

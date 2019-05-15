@@ -5,8 +5,10 @@ import matplotlib.pyplot as plt
 import graph_utils
 import numpy as np
 import process_csv
+import sys
 
-if __name__ == "__main__":
+
+def main(args):
     parser = argparse.ArgumentParser()
     parser.add_argument('--input-file', dest='input_files', nargs=2, action='append', required=True, help="csv file to plot.  Needs a label as a second argument.")
     parser.add_argument('--keep-temps', dest='keep_temps', default=False, action='store_true', help="Keep temp files")
@@ -18,7 +20,7 @@ if __name__ == "__main__":
     parser.add_argument('--output-name', dest='output_name', required=True)
     parser.add_argument('--title', dest='title', required=False, default=None)
 
-    args = parser.parse_args()
+    args = parser.parse_args(args)
 
     outgoing_graph = plt.figure(1)
     incoming_graph = plt.figure(2)
@@ -111,3 +113,7 @@ if __name__ == "__main__":
     filename = args.output_name + '_all_sizes.eps'
     plt.savefig(filename)
     print "Done! File is in ", args.output_name + '_all_sizes.eps'
+
+
+if __name__ == "__main__":
+    main(sys.argv[1:])

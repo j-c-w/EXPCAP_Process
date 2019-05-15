@@ -5,8 +5,10 @@ import matplotlib.pyplot as plt
 import graph_utils
 import numpy as np
 import process_csv
+import graph_utils
+import sys
 
-if __name__ == "__main__":
+def main(args):
     parser = argparse.ArgumentParser()
     parser.add_argument('--input-file', dest='input_files', nargs=2, action='append', required=True, help="csv file to plot.  Needs a label as a second argument.")
     parser.add_argument('--window-size', nargs=2, action='append', dest='window_size', help="How long to average over.  In ps.", required=True)
@@ -19,7 +21,7 @@ if __name__ == "__main__":
             default=None, dest='packets',
             help="Number of packets to process from a pcap file")
 
-    args = parser.parse_args()
+    args = parser.parse_args(args)
 
     for pcap_file, label in args.input_files:
         for window_size, label_suffix in args.window_size:
@@ -57,7 +59,7 @@ if __name__ == "__main__":
     graph_utils.set_yax_max_one()
     graph_utils.set_non_negative_axes()
     graph_utils.set_ticks()
-    filename = args.output_name + '_incoming_bandwidth_cdf_window'
+    filename = args.output_name + '_incoming_bandwidth_cdf_window.eps'
     plt.savefig(filename)
     print "Done! File is in ", filename
     plt.figure(2)
@@ -67,6 +69,10 @@ if __name__ == "__main__":
     graph_utils.set_yax_max_one()
     graph_utils.set_non_negative_axes()
     graph_utils.set_ticks()
-    filename = args.output_name + '_outgoing_bandwidth_cdf_window'
+    filename = args.output_name + '_outgoing_bandwidth_cdf_window.eps'
     plt.savefig(filename)
     print "Done! File is in ", filename
+
+
+if __name__ == "__main__":
+    main(sys.argv[1:])

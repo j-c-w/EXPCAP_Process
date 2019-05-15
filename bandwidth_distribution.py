@@ -5,8 +5,11 @@ import matplotlib.pyplot as plt
 import graph_utils
 import numpy as np
 import process_csv
+import graph_utils
+import sys
 
-if __name__ == "__main__":
+
+def main(args):
     parser = argparse.ArgumentParser()
     parser.add_argument('--input-file', dest='input_files', nargs=2, action='append', required=True, help="csv file to plot.  Needs a label as a second argument.")
     parser.add_argument('--window-size', type=int, nargs=2, dest='window_size', action='append', help="How long to average over.  In ps. (Also needs a label)", required=True)
@@ -18,7 +21,7 @@ if __name__ == "__main__":
             default=None, dest='packets',
             help="Number of packets to process from a pcap file")
 
-    args = parser.parse_args()
+    args = parser.parse_args(args)
 
     for (pcap_file, label) in args.input_files:
         for (window_size, label_suffix) in args.window_sizes:
@@ -28,6 +31,10 @@ if __name__ == "__main__":
             zero_value = x_values[0][0]
             for i in range(len(x_values)):
                 x_values[i] = x_values[i][0] - zero_value
+
+            bandwidths = []
+            for usage in usages:
+                bandwidths.append(usage * 10000.0)
 
             bins = np.append(np.linspace(min(bandwidths), max(bandwidths), 1000), np.inf)
             plt.hist(bandwidths, cumulative=True, normed=True, histtype='step', bins=bins, label=label)
@@ -46,3 +53,7 @@ if __name__ == "__main__":
     filename = args.output_name + '_bandwidth_cdf.eps'
     plt.savefig(filename)
     print "Done! File is in ", filename
+
+
+if __name__ == "__main__":
+    main(sys.argv[1:])

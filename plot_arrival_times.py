@@ -3,13 +3,13 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import numpy as np
-import os
 import process_csv
 import process_txt
 import process_pcap
-import subprocess
+import sys
 
-if __name__ == "__main__":
+
+def main(args):
     parser = argparse.ArgumentParser()
 
     parser.add_argument('input_file')
@@ -18,7 +18,7 @@ if __name__ == "__main__":
                         required=False, dest='packets',
                         default=None)
 
-    args = parser.parse_args()
+    args = parser.parse_args(args)
 
     input_file = args.input_file
     if input_file.endswith('.pcap'):
@@ -42,3 +42,7 @@ if __name__ == "__main__":
     plt.xlabel("Packet number")
     plt.ylabel("Absolute Arrival Time")
     plt.savefig(input_file + '_arrival_times.eps', format='eps')
+
+
+if __name__ == "__main__":
+    main(sys.argv[1:])

@@ -346,12 +346,23 @@ def extract_windows(filename, window_size, count=None, to_ip=None, from_ip=None)
     for index in xrange(iterations):
         window_start = start_time + Decimal(index) * window_size
         window_end = window_start + window_size
+        # Check if there are no packets in this window
+        # and skip the hard work if so:
+        if expcap_metadatas[packet_start_index].wire_start_time > window_end:
+            packet_groups.append([])
+            windows.append((window_start, window_end))
+            if debug:
+                print "Empty window! Skipping... Until it's not empty!"
+            continue
         # Get all the packets in this range:
         packet_end_index = packet_start_index
         while packet_end_index < len(expcap_metadatas) and \
                 expcap_metadatas[packet_end_index].wire_end_time < window_end:
             packet_end_index += 1
 
+        if debug:
+            print "Packet Start index is", packet_start_index
+            print "Packet end index is ", packet_end_index
         # If we've gone past the end, teh last packet is clearly just
         # the last one in the list.
         if packet_end_index == len(expcap_metadatas):
@@ -362,6 +373,35 @@ def extract_windows(filename, window_size, count=None, to_ip=None, from_ip=None)
         # and end.
 
         packets_in_window = []
+        if packet_start_index == packet_end_index:
+            start_packet = expcap_metadatas[packet_start_index]
+            if start_packet.wire_start_time < window_start and start_packet.wire_end_time > window_end:
+                # The packet is not entirely  in the window but is sticking out both sides.  Deal with that here:
+                window_size = window_end - window_start
+                fraction_in_window = window_size / expcap_metadatas[packet_start_index].wire_length_time
+                packet_groups.append([(fraction_in_window, start_packet)])
+            elif start_packet.wire_end_time < window_end and \
+                    start_packet.wire_start_time > window_start:
+                # Add the packet entirely:
+                packet_groups.append([(one, start_packet)])
+            elif start_packet.wire_start_time < window_start:
+                fraction_in_window = (start_packet.wire_end_time - window_start) / start_packet.wire_length_time
+                packet_groups.append([(fraction_in_window, start_packet)])
+            elif start_packet.wire_end_time > window_end:
+                fraction_in_window = (window_end - start_packet.wire_start_time) / start_packet.wire_length_time
+                packet_groups.append([(fraction_in_window, start_packet)])
+            else:
+                assert packet.wire_end_time < window_start or packet.wire_start_time > window_end
+                # The packet is entirely outside the window.
+                packet_groups.append([])
+
+            # We need to not do the logic below or the packet will be added more times.
+            # Note that we should not increment becase it sticks out the end of the window.
+            windows.append((window_start, window_end))
+
+            # We don't have to set the packet end index because it is already correct.
+            continue
+
         if expcap_metadatas[packet_start_index].wire_end_time < window_start:
             # The packet is entirely before the start of the window.
             pass
@@ -371,33 +411,49 @@ def extract_windows(filename, window_size, count=None, to_ip=None, from_ip=None)
             packets_in_window.append((fraction_in_window,
                                       expcap_metadatas[packet_start_index]))
             if debug:
-                print "wire end time first packet"
+                print "Wire start time for first packet before start of window"
+                print "Fraction in window ", fraction_in_window
         else:
             packets_in_window.append((one, expcap_metadatas[packet_start_index]))
             if debug:
-                print "wire length time first packet"
+                print "First packet entirely in the window"
+                print "(Start time is", expcap_metadatas[packet_start_index].wire_start_time, ")"
+                print "Window start time is ", window_start
 
+        if debug:
+            print "Added partial packet  at index", packet_start_index
         # Loop over all but the last packet, which we don't want to include
         # in the calculation because it may be chopped out of the region.
         for index in xrange(packet_start_index + 1, packet_end_index):
             # These packets will be entirely in the window, so
             # they fraction 1.0 in the window
+            if debug:
+                print "Added all of indexes", index
             packets_in_window.append((one, expcap_metadatas[index]))
 
+        if debug:
+            print "Adding partial packet at index", packet_end_index
         # The last packet might only be partially in the window.
         if expcap_metadatas[packet_end_index].wire_start_time >  window_end:
             # The packet is entirely outside the window.
             pass
         elif expcap_metadatas[packet_end_index].wire_end_time > window_end:
             if debug:
-                print "wire start time last packet"
+                print "Packet sticks out of window end."
             fraction_in_window = (window_end - expcap_metadatas[packet_end_index].wire_start_time) / expcap_metadatas[packet_end_index].wire_length_time
             packets_in_window.append((fraction_in_window, expcap_metadatas[packet_end_index]))
+            if debug:
+                print "Fraction in the window is", fraction_in_window
         else:
             if debug:
                 print "Wire length time last packet"
             packets_in_window.append((one, expcap_metadatas[packet_end_index]))
 
+        if debug:
+            print "Added packets with hashes:", 
+            for (fraction, packet) in packets_in_window:
+                print hash(packet),
+            print ""
         # Make the rate calculation here:
         packet_groups.append(packets_in_window)
         windows.append((window_start, window_end))
@@ -469,6 +525,7 @@ def extract_utilizations(filename, window_size, count=None, to_ip=None, from_ip=
                                          to_ip=to_ip, from_ip=from_ip)
 
     usages = []
+    debug = False
     # For each window, go through and sum the total
     # fraction of time the window is in use.
     for i in xrange(len(windows)):
@@ -476,9 +533,19 @@ def extract_utilizations(filename, window_size, count=None, to_ip=None, from_ip=
         total_window_time = window_end - window_start
         time_used = Decimal(0.0)
         for (fraction, packet) in packets[i]:
+            print fraction
+            print packet.wire_length_time
+            print hash(packet)
             time_used += fraction * packet.wire_length_time
 
-        usages.append(time_used / total_window_time)
+        utilization = time_used / total_window_time
+        usages.append(utilization)
+        if debug:
+            print "Window size is ", total_window_time
+            print "Utilization is ", utilization
+            print "Number of packets in the window is ", len(packets[i])
+            if utilization > 1:
+                print "Greater than one usage: see last ", len(packets[i]), "utilizations"
 
     with open(cache_name, 'w') as f:
         with flock.Flock(f, flock.LOCK_EX) as lock:

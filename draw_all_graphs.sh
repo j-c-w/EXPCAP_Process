@@ -8,6 +8,7 @@ echo "The first time you call this script, you will need to pass --extract all"
 echo "--delete-cache: delete cached files when we are done.  Good for running on small disks."
 echo "--dry-run: Just print the files we are going to extract and the commands we would run."
 echo "--config <file> : use a different config"
+echo "--no-graphs : don't draw graphs, just extract"
 l=""
 
 declare -a copy_files
@@ -17,8 +18,9 @@ declare -a plot_only
 declare -a dry_run
 declare -a config
 declare -a limit_packets
+declare -a no_graphs
 
-zparseopts -D -E -copy+=copy_files -extract-all=extract_all -delete-cache=delete_cache -plot-only=plot_only -dry-run=dry_run -config:=config -limit-packets:=limit_packets
+zparseopts -D -E -copy+=copy_files -extract-all=extract_all -delete-cache=delete_cache -plot-only=plot_only -dry-run=dry_run -config:=config -limit-packets:=limit_packets -no-graphs=no_graphs
 
 typeset -a files_to_extract
 
@@ -141,7 +143,7 @@ for graph_command in "${graph_commands[@]}"; do
 
 	# Now, run the command to draw the graph
 	set -x
-	if [[ ${#dry_run} == 0 ]]; then
+	if [[ ${#dry_run} == 0 ]] && [[ ${#no_graphs} == 0 ]]; then
 		eval "$comm"
 	else
 		echo "Running '$comm'"
@@ -151,11 +153,4 @@ for graph_command in "${graph_commands[@]}"; do
 	for file in ${files[@]}; do
 		files_to_delete+=($file)
 	done
-done
-
-for file in ${files_to_delete[@]}; do
-	# We don't want  to delete the original EXPCAP files!
-	if [[ $file == *.csv ]]; then
-		cleanup $file
-	fi
 done

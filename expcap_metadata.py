@@ -75,7 +75,6 @@ class ExpcapPacket(object):
             self.tcp_data_length = self.ip_length - 20 - 20
             if self.is_tcp_syn:
                 print "Is syn!"
-                print self.packet_data
             if self.is_tcp_fin:
                 print "Is Fin!"
             self.fully_processed_tcp = True

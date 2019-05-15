@@ -17,7 +17,10 @@ def microburst_analyze(bursts, identifier, pcap_file, label, id_base):
 
     # Print a CDF of the microburst length distribution:
     lengths = [len(x) for x in bursts]
-    bins = np.append(np.linspace(min(lengths), max(lengths), 1000), np.inf)
+    min_lim = min(lengths)
+    max_lim = max(lengths)
+    small_diff = (min_lim + max_lim) / 10000.0
+    bins = np.append(np.linspace(min_lim, max_lim + small_diff, 1000), np.inf)
     plt.figure(1 + id_base)
     plt.hist(lengths, bins=bins, cumulative=True, histtype='step', normed=True, label=label)
     plt.savefig('test.eps')
@@ -27,7 +30,6 @@ def microburst_analyze(bursts, identifier, pcap_file, label, id_base):
     for burst in bursts:
         start_time = burst[0].wire_start_time
         end_time = burst[len(burst) - 1].wire_end_time
-
         total_time_in_use = Decimal(sum([packet.wire_length_time for packet in burst]))
         bandwidths.append(Decimal(10000.0) * (total_time_in_use / (end_time - start_time)))
 
@@ -35,7 +37,10 @@ def microburst_analyze(bursts, identifier, pcap_file, label, id_base):
         bandwidths[i] = float(bandwidths[i])
 
     plt.figure(2 + id_base)
-    bins = np.append(np.linspace(min(bandwidths), max(bandwidths), 1000), np.inf)
+    min_lim = min(bandwidths)
+    max_lim = max(bandwidths)
+    small_diff = (min_lim + max_lim) / 10000.0
+    bins = np.append(np.linspace(min_lim, max_lim + small_diff, 1000), np.inf)
     plt.hist(bandwidths, bins=bins, cumulative=True, histtype='step', normed=True, label=label)
 
 
@@ -44,7 +49,7 @@ def main(args):
     parser.add_argument('--input-file', dest='input_files', nargs=2, action='append', required=True, help="csv file to plot.  Needs a label as a second argument.")
     parser.add_argument('--thresholds', dest='thresholds', help="This should be a three-tuple.  The firs tiem should be how long between packets (ps) for sequential packets  to be counted in the same burst.  The second item should be how many packets must arrive before  a bursst starts.  The last item should be a label.", required=True, action='append', nargs=3)
     parser.add_argument('--keep-temps', dest='keep_temps', default=False, action='store_true', help="Keep temp files")
-    parser.add_argument('--server', dest='server_ip', required=True, help="IP of the machine that the card is directory connected to")
+    parser.add_argument('--server', dest='server_ip', required=False, default=None, help="IP of the machine that the card is directory connected to")
     parser.add_argument('--output-name', dest='output_name', required=True)
     parser.add_argument('--title', dest='title')
     # This is to avoid issues with tcpdump hanging.

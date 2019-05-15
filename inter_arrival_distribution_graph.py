@@ -46,7 +46,10 @@ def main(args):
             np.asarray(timestamp_deltas_outgoing, dtype='float')
 
         plt.figure(1)
-        bins = np.append(np.linspace(range[0], range[1], 1000), np.inf)
+        min_lim = range[0]
+        max_lim = range[1]
+        small_diff = (min_lim + max_lim) / 10000.0
+        bins = np.append(np.linspace(min_lim, max_lim + small_diff, 1000), np.inf)
         plt.hist(timestamp_deltas_outgoing, bins=bins, cumulative=True,
                  histtype='step', normed=True, label=label)
 
@@ -59,7 +62,10 @@ def main(args):
         timestamp_deltas_incoming = \
             np.asarray(timestamp_deltas_incoming, dtype='float')
 
-        bins = np.append(np.linspace(range[0], range[1], 1000), np.inf)
+        min_lim = range[0]
+        max_lim = range[1]
+        small_diff = (min_lim + max_lim) / 10000.0
+        bins = np.append(np.linspace(min_lim, max_lim + small_diff, 1000), np.inf)
 
         plt.figure(2)
         plt.hist(timestamp_deltas_incoming, bins=bins,

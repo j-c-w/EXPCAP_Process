@@ -31,7 +31,10 @@ def main(args):
 
         for i in range(len(flow_lengths)):
             flow_lengths[i] = float(flow_lengths[i])
-        bins = np.append(np.linspace(min(flow_lengths), max(flow_lengths) + 0.00001, 1000), np.inf)
+        min_lim = min(flow_lengths)
+        max_lim = max(flow_lengths)
+        small_diff = (min_lim + max_lim) / 10000.0
+        bins = np.append(np.linspace(min_lim, max_lim + small_diff, 1000), np.inf)
         plt.hist(flow_lengths, cumulative=True, bins=bins, histtype='step', normed=True, label=label)
 
     if args.title:

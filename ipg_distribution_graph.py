@@ -61,9 +61,10 @@ def main(args):
 
         # Avoid issues witht the CDF line decreasing to zero after the data is
         # plotted.
-        bins = \
-            np.linspace(min(incoming_ipg_gaps),
-                        max(incoming_ipg_gaps) + 0.00000001, 1000)
+        min_lim = min(incoming_ipg_gaps)
+        max_lim = max(incoming_ipg_gaps)
+        small_diff = (min_lim + max_lim) / 10000.0
+        bins = np.linspace(min_lim, max_lim + small_diff, 1000)
         bins = np.append(bins, np.inf)
 
         plt.figure(1)
@@ -85,8 +86,10 @@ def main(args):
 
         # Avoid issues witht the CDF line decreasing to zero after the data
         # is plotted.
-        bins = \
-            np.linspace(min(outgoing_ipg_gaps), max(outgoing_ipg_gaps), 1000)
+        min_lim = min(outgoing_ipg_gaps)
+        max_lim = max(outgoing_ipg_gaps)
+        small_diff = (min_lim + max_lim) / 10000.0
+        bins = np.linspace(min_lim, max_lim + small_diff, 1000)
         bins = np.append(bins, np.inf)
 
         plt.figure(2)

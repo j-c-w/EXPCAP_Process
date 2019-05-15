@@ -36,7 +36,7 @@ def main(args):
             for usage in usages:
                 bandwidths.append(usage * 10000.0)
 
-            bins = np.append(np.linspace(min(bandwidths), max(bandwidths), 1000), np.inf)
+            bins = np.append(np.linspace(min(bandwidths), max(bandwidths) + 0.1, 1000), np.inf)
             plt.hist(bandwidths, cumulative=True, normed=True, histtype='step', bins=bins, label=label)
 
     plt.xlabel("Bandwidth Used (Mbps)")

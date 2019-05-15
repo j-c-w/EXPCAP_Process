@@ -3,7 +3,11 @@ import time
 from expcap_metadata import ExpcapPacket
 import numpy as np
 import os
+import re
 import sys
+import glob
+import flock
+import threading
 
 # This is a little hack to make loading repeatedly from the same file faster.
 last_loaded = None
@@ -56,6 +60,30 @@ def generate_cache_name(input_file, name, to_ip, from_ip, count, window_size=Non
     return name + '.cache'
 
 
+def get_caches_we_can_build_from(input_file, name, to_ip, from_ip, count, window_size):
+    biggest_match_found = None
+    biggest_file_found = None
+    glob_name = generate_cache_name(input_file, name, to_ip, from_ip, count, window_size="*")
+
+    files = glob.glob(glob_name)
+
+    for file in files:
+        # Get the window size first:
+        window_index = file.index('window_size_')
+        assert window_index != -1
+        last_part = file[window_index + len('window_size_'):]
+        # Chop from the number to the end:
+        size = int(re.split('_|\.', last_part)[0])
+
+        if int(window_size) % size == 0:
+            print "Found a file that will build to make the cache we want!"
+            if not biggest_match_found or size > biggest_match_found:
+                biggest_match_found = size
+                biggest_file_found = file
+
+    return biggest_file_found, biggest_match_found
+
+
 def tcp_flow_identifier(packet):
     # Note that this needs to identify /flows/ so things
     # need to be in the same order independent of whether
@@ -65,47 +93,54 @@ def tcp_flow_identifier(packet):
     return '_'.join(sorted(data))
 
 
+metadatas_lock = threading.Lock()
+
 def extract_expcap_metadatas(filename, count=None, to_ip=None, from_ip=None):
     global last_loaded
     global last_loaded_from
+    global metadatas_lock
 
     if filename == last_loaded_from:
         # Clone the last loaded list and send it back if this is the same
         # file as before.
         metadata = last_loaded[:]
     else:
-        with open(filename) as f:
-            if count:
-                lines = f.readlines()[1:count]
-            else:
-                lines = f.readlines()[1:]
+        metadatas_lock.acquire()
+        try:
+            with open(filename) as f:
+                if count:
+                    lines = f.readlines()[1:count]
+                else:
+                    lines = f.readlines()[1:]
 
-            metadata = []
-            start_time = time.time()
-            for line in lines:
-                expcap_packet = ExpcapPacket(line)
-                if expcap_packet.padding_packet or not expcap_packet.fully_processed_ip:
-                    print "Extracted: ", len(metadata), "so far"
-                    current_time = time.time()
-                    print "Rate is ", len(metadata) / (current_time - start_time), "pps"
-                    continue
-                metadata.append(expcap_packet)
+                metadata = []
+                start_time = time.time()
+                for line in lines:
+                    expcap_packet = ExpcapPacket(line)
+                    if expcap_packet.padding_packet or not expcap_packet.fully_processed_ip:
+                        print "Extracted: ", len(metadata), "so far"
+                        current_time = time.time()
+                        print "Rate is ", len(metadata) / (current_time - start_time), "pps"
+                        continue
+                    metadata.append(expcap_packet)
 
-        metadata.sort(key=lambda x: x.start_time)
-        last_loaded = metadata[:]
-        last_loaded_from = filename
+            metadata.sort(key=lambda x: x.start_time)
+            last_loaded = metadata[:]
+            last_loaded_from = filename
+        finally:
+            metadatas_lock.release()
 
     deleted_count = 0
     if to_ip:
         hex_ip = ip_to_hex(to_ip)
-        for index in range(len(metadata)):
+        for index in xrange(len(metadata)):
             if metadata[index].dst_addr != hex_ip:
                 deleted_count += 1
                 metadata[index] = None
 
     if from_ip:
         hex_ip = ip_to_hex(from_ip)
-        for index in range(len(metadata)):
+        for index in xrange(len(metadata)):
             if metadata[index].src_addr != hex_ip:
                 deleted_count += 1
                 metadata[index] = None
@@ -124,9 +159,11 @@ def extract_expcap_metadatas(filename, count=None, to_ip=None, from_ip=None):
 def extract_sizes(filename, count=None, to_ip=None, from_ip=None):
     cache_name = generate_cache_name(filename, '_sizes_list', to_ip, from_ip, count)
     if os.path.exists(cache_name):
+        print "Hit a cache extracting packet sizes!"
         with open(cache_name) as f:
-            sizes = f.readlines()[0].split(',')
-            return [int(size) for size in sizes]
+            with flock.Flock(f, flock.LOCK_EX) as lock:
+                sizes = f.readlines()[0].split(',')
+                return [int(size) for size in sizes]
 
     metadatas = extract_expcap_metadatas(filename, count, to_ip=to_ip,
                                          from_ip=from_ip)
@@ -135,7 +172,8 @@ def extract_sizes(filename, count=None, to_ip=None, from_ip=None):
         sizes.append(expcap_packet.length)
 
     with open(cache_name, 'w') as f:
-        f.write(','.join([str(size) for size in sizes]))
+        with flock.Flock(f, flock.LOCK_EX) as lock:
+            f.write(','.join([str(size) for size in sizes]))
     return sizes
 
 
@@ -152,6 +190,9 @@ packet at each stage.
 """
 def find_bursts(filename, count=None, ipg_threshold=20000, packet_threshold=20, to_ip=None, from_ip=None):
     metadatas = extract_expcap_metadatas(filename, count=count, to_ip=to_ip, from_ip=from_ip)
+
+    if len(metadatas) == 0:
+        return []
 
     time = metadatas[0].wire_start_time
     burst_count = 0
@@ -179,8 +220,10 @@ def find_bursts(filename, count=None, ipg_threshold=20000, packet_threshold=20, 
 def extract_ipgs(filename, count=None, to_ip=None, from_ip=None):
     cache_name = generate_cache_name(filename, '_ipgs', to_ip, from_ip, count)
     if os.path.exists(cache_name):
+        print "Hit a cache extracting IPGs!"
         with open(cache_name) as f:
-            return [Decimal(x) for x in (f.readlines()[0].split(','))]
+            with flock.Flock(f, flock.LOCK_EX) as lock:
+                return [Decimal(x) for x in (f.readlines()[0].split(','))]
     metadatas = extract_expcap_metadatas(filename, count=count, to_ip=to_ip, from_ip=from_ip)
     ipgs = []
     if len(metadatas) < 2:
@@ -192,7 +235,8 @@ def extract_ipgs(filename, count=None, to_ip=None, from_ip=None):
         last_end = expcap_packet.wire_end_time
 
     with open(cache_name, 'w') as f:
-        f.write(','.join([str(ipg) for ipg in ipgs]))
+        with flock.Flock(f, flock.LOCK_EX) as lock:
+            f.write(','.join([str(ipg) for ipg in ipgs]))
 
     return ipgs
 
@@ -202,8 +246,10 @@ def extract_times(filename, column=7, count=None, to_ip=None, from_ip=None):
 
     cache_name = generate_cache_name(filename, '_times', to_ip, from_ip, count)
     if os.path.exists(cache_name):
+        print "Hit a cache extracting arrival times!"
         with open(cache_name) as f:
-            return [Decimal(x) for x in (f.readlines()[0].split(','))]
+            with flock.Flock(f, flock.LOCK_EX) as lock:
+                return [Decimal(x) for x in (f.readlines()[0].split(','))]
 
     expcap_metadatas = \
         extract_expcap_metadatas(filename, count=count, to_ip=to_ip, from_ip=from_ip)
@@ -212,7 +258,8 @@ def extract_times(filename, column=7, count=None, to_ip=None, from_ip=None):
         times.append(expcap.wire_start_time)
 
     with open(cache_name, 'w') as f:
-        f.write(','.join([str(time) for time in times]))
+        with flock.Flock(f, flock.LOCK_EX) as lock:
+            f.write(','.join([str(time) for time in times]))
 
     return times
 
@@ -235,6 +282,10 @@ in the trace in it and so would be too big.
 """
 def extract_windows(filename, window_size, count=None, to_ip=None, from_ip=None):
     # Note that window_size is in pico seconds, so convert to seconds
+    if int(window_size) < 70000:
+        print "Window size less than 70,000 ps not supported"
+        sys.exit(1)
+
     window_size = Decimal(window_size) / Decimal(1000000000000)
     expcap_metadatas = extract_expcap_metadatas(filename, count=count, to_ip=to_ip, from_ip=from_ip)
     debug = False
@@ -254,6 +305,7 @@ def extract_windows(filename, window_size, count=None, to_ip=None, from_ip=None)
 
     # Find the number of iterations we need in the loop.
     iterations = int((end_time - start_time) / window_size)
+
     if debug:
         print iterations
     # Also, we need to keep the number of windows accurate, so throw away
@@ -264,7 +316,8 @@ def extract_windows(filename, window_size, count=None, to_ip=None, from_ip=None)
     # Keep track of the first relevant packet for each
     # time interval.
     packet_start_index = 0
-    for index in range(iterations):
+    one = Decimal(1.0)
+    for index in xrange(iterations):
         window_start = start_time + Decimal(index) * window_size
         window_end = window_start + window_size
         # Get all the packets in this range:
@@ -288,22 +341,22 @@ def extract_windows(filename, window_size, count=None, to_ip=None, from_ip=None)
             pass
         elif expcap_metadatas[packet_start_index].wire_start_time < window_start:
             # The packet starts before the window, so chop that off.
-            fraction_in_window = (window_start - expcap_metadatas[packet_start_index].wire_start_time) / expcap_metadatas[packet_start_index].wire_length_time
+            fraction_in_window = (expcap_metadatas[packet_start_index].wire_end_time - window_start) / expcap_metadatas[packet_start_index].wire_length_time
             packets_in_window.append((fraction_in_window,
                                       expcap_metadatas[packet_start_index]))
             if debug:
                 print "wire end time first packet"
         else:
-            packets_in_window.append((Decimal(1.0), expcap_metadatas[packet_start_index]))
+            packets_in_window.append((one, expcap_metadatas[packet_start_index]))
             if debug:
                 print "wire length time first packet"
 
         # Loop over all but the last packet, which we don't want to include
         # in the calculation because it may be chopped out of the region.
-        for index in range(packet_start_index + 1, packet_end_index):
+        for index in xrange(packet_start_index + 1, packet_end_index):
             # These packets will be entirely in the window, so
             # they fraction 1.0 in the window
-            packets_in_window.append((Decimal(1.0), expcap_metadatas[index]))
+            packets_in_window.append((one, expcap_metadatas[index]))
 
         # The last packet might only be partially in the window.
         if expcap_metadatas[packet_end_index].wire_start_time >  window_end:
@@ -312,12 +365,12 @@ def extract_windows(filename, window_size, count=None, to_ip=None, from_ip=None)
         elif expcap_metadatas[packet_end_index].wire_end_time > window_end:
             if debug:
                 print "wire start time last packet"
-            fraction_in_window = (expcap_metadatas[packet_end_index].wire_end_time - window_end) / expcap_metadatas[packet_end_index].wire_length_time
+            fraction_in_window = (window_end - expcap_metadatas[packet_end_index].wire_start_time) / expcap_metadatas[packet_end_index].wire_length_time
             packets_in_window.append((fraction_in_window, expcap_metadatas[packet_end_index]))
         else:
             if debug:
                 print "Wire length time last packet"
-            packets_in_window.append((Decimal(1.0), expcap_metadatas[packet_end_index]))
+            packets_in_window.append((one, expcap_metadatas[packet_end_index]))
 
         # Make the rate calculation here:
         packet_groups.append(packets_in_window)
@@ -333,8 +386,9 @@ def extract_windows(filename, window_size, count=None, to_ip=None, from_ip=None)
 def extract_bandwidths(filename, window_size, max_mbps=10000, count=None, to_ip=None, from_ip=None):
     windows, utilizations = extract_utilizations(filename, window_size, count=count, to_ip=to_ip, from_ip=from_ip)
 
-    for i in range(len(utilizations)):
-        utilizations[i] = Decimal(max_mbps) * utilizations[i]
+    max_mbps = Decimal(max_mbps)
+    for i in xrange(len(utilizations)):
+        utilizations[i] = max_mbps * utilizations[i]
 
     return windows, utilizations
 
@@ -342,12 +396,48 @@ def extract_bandwidths(filename, window_size, max_mbps=10000, count=None, to_ip=
 def extract_utilizations(filename, window_size, count=None, to_ip=None, from_ip=None):
     cache_name = generate_cache_name(filename, '_bandwidths', to_ip, from_ip, count, window_size=str(window_size))
     if os.path.exists(cache_name):
+        print "Hit a cache extracting utilizations!"
         with open(cache_name) as f:
-            lines = f.readlines()
-            windows = windows_list_from_string(lines[0])
-            usages = [Decimal(x) for x in (lines[1].split(','))]
+            with flock.Flock(f, flock.LOCK_EX) as lock:
+                lines = f.readlines()
+                windows = windows_list_from_string(lines[0])
+                usages = [Decimal(x) for x in (lines[1].split(','))]
 
-            return (windows, usages)
+                return (windows, usages)
+    else:
+        # Try to see if there are any multiple window size files
+        # that we can build the right one from.
+        other_name, other_size = get_caches_we_can_build_from(filename, '_bandwidths', to_ip, from_ip, count, window_size)
+        if other_name != None:
+            print "We are able to build the graph using a different cache file!"
+            combination_factor = (int(window_size) / other_size)
+            print "The combination factor is ", combination_factor
+            with open(other_name) as f:
+                with flock.Flock(f, flock.LOCK_EX) as lock:
+                    bigger_windows = []
+                    bigger_utilizations = []
+
+                    lines = f.readlines()
+                    windows = windows_list_from_string(lines[0])
+                    utilizations = [Decimal(x) for x in lines[1].split(',')]
+
+                    for base_index in range(0, len(windows) / combination_factor, combination_factor):
+                        window_start, _ = windows[base_index]
+                        _, window_end = windows[base_index + combination_factor - 1]
+
+                        # Now, go through and build up the appropriate windows:
+                        new_utilizations = []
+                        for index in range(base_index, base_index + combination_factor):
+                            # We want to weight the contribution to the
+                            # utilization in the new window by the length of
+                            # the window.
+                            sub_window_start, sub_window_end = windows[index]
+                            new_fraction = (sub_window_end - sub_window_start) / (window_end - window_start)
+                            new_utilizations.append(utilizations[index] * new_fraction)
+
+                        bigger_utilizations.append(sum(new_utilizations))
+                        bigger_windows.append((window_start, window_end))
+            return bigger_windows, bigger_utilizations
 
     (windows, packets) = extract_windows(filename, window_size, count=count,
                                          to_ip=to_ip, from_ip=from_ip)
@@ -355,7 +445,7 @@ def extract_utilizations(filename, window_size, count=None, to_ip=None, from_ip=
     usages = []
     # For each window, go through and sum the total
     # fraction of time the window is in use.
-    for i in range(len(windows)):
+    for i in xrange(len(windows)):
         (window_start, window_end) = windows[i]
         total_window_time = window_end - window_start
         time_used = Decimal(0.0)
@@ -365,8 +455,9 @@ def extract_utilizations(filename, window_size, count=None, to_ip=None, from_ip=
         usages.append(time_used / total_window_time)
 
     with open(cache_name, 'w') as f:
-        f.write(windows_list_to_string(windows))
-        f.write(','.join([str(usage) for usage in usages]))
+        with flock.Flock(f, flock.LOCK_EX) as lock:
+            f.write(windows_list_to_string(windows))
+            f.write(','.join([str(usage) for usage in usages]))
 
     return (windows, usages)
 
@@ -375,13 +466,43 @@ def extract_sizes_by_window(filename, window_size, count=None, to_ip=None,
         from_ip=None):
     cache_name = generate_cache_name(filename, '_sizes_by_window', to_ip, from_ip, count, window_size=window_size)
     if os.path.exists(cache_name):
+        print "Hit a cache extracting sizes by window!"
         with open(cache_name) as f:
-            lines = f.readlines()
-            windows = windows_list_from_string(lines[0])
-            sizes = lines[1].split(',')
-            for i in range(len(sizes)):
-                sizes[i] = [int(x) for x in sizes[i].split('_')]
-            return windows, sizes
+            with flock.Flock(f, flock.LOCK_EX) as lock:
+                lines = f.readlines()
+                windows = windows_list_from_string(lines[0])
+                sizes = lines[1].split(',')
+                for i in xrange(len(sizes)):
+                    sizes[i] = [int(x) for x in sizes[i].split('_')]
+                return windows, sizes
+    else:
+        # Try to see if there are any multiple window size files
+        # that we can build the right one from.
+        other_name, other_size = get_caches_we_can_build_from(filename, '_sizes_by_window', to_ip, from_ip, count, window_size)
+        if other_name != None:
+            print "We are able to build the graph using a different cache file!"
+            combination_factor = (int(window_size) / other_size)
+            print "The combination factor is ", combination_factor
+            with open(other_name) as f:
+                with flock.Flock(f, flock.LOCK_EX) as lock:
+                    bigger_windows = []
+                    bigger_sizes = []
+
+                    lines = f.readlines()
+                    windows = windows_list_from_string(lines[0])
+                    sizes = lines[1].split(',')
+
+                    for base_index in range(0, len(sizes) / combination_factor, combination_factor):
+                        window_start, _ = windows[base_index]
+                        _, window_end = windows[base_index + combination_factor - 1]
+                        this_window_sizes = []
+                        for index in range(0, combination_factor):
+                            sub_window_sizes = [int(x) for x in sizes[base_index + index].split('_')]
+                            this_window_sizes += sub_window_sizes
+                        bigger_sizes.append(this_window_sizes)
+                        bigger_windows.append((window_start, window_end))
+            return bigger_windows, bigger_sizes
+
 
     (windows, packets) = extract_windows(filename, window_size, count=count,
             to_ip=to_ip, from_ip=from_ip)
@@ -395,8 +516,9 @@ def extract_sizes_by_window(filename, window_size, count=None, to_ip=None,
         sizes.append(window_sizes)
 
     with open(cache_name, 'w') as f:
-        f.write(windows_list_to_string(windows))
-        f.write(','.join(['_'.join([str(x) for x in size_list]) for size_list in sizes]))
+        with flock.Flock(f, flock.LOCK_EX) as lock:
+            f.write(windows_list_to_string(windows))
+            f.write(','.join(['_'.join([str(x) for x in size_list]) for size_list in sizes]))
 
     return windows, sizes
 
@@ -404,19 +526,24 @@ def extract_sizes_by_window(filename, window_size, count=None, to_ip=None,
 def extract_deltas(filename, column=7, to_ip=None, from_ip=None):
     cache_name = generate_cache_name(filename, '_deltas', to_ip, from_ip, None)
     if os.path.exists(cache_name):
+        print "Hit a cache extracting deltas!"
         with open(cache_name) as f:
-            return [Decimal(delta) for delta in f.readlines()[0].split(',')]
+            with flock.Flock(f, flock.LOCK_EX) as lock:
+                return [Decimal(delta) for delta in f.readlines()[0].split(',')]
 
     times = extract_times(filename, column, to_ip=to_ip, from_ip=from_ip)
+    if len(times) == 0:
+        return []
 
     diffs = []
     last_time = times[0]
-    for time in times[1:]:
-        diffs.append(time - last_time)
-        last_time = time
+    for pkt_time in times[1:]:
+        diffs.append(pkt_time - last_time)
+        last_time = pkt_time
 
     with open(cache_name, 'w') as f:
-        f.write(','.join([str(diff) for diff in diffs]))
+        with flock.Flock(f, flock.LOCK_EX) as lock:
+            f.write(','.join([str(diff) for diff in diffs]))
 
     return diffs
 
@@ -425,12 +552,14 @@ def extract_flow_lengths(filename):
     cache_name = generate_cache_name(filename, '_flow_lengths', None, None, None)
 
     if os.path.exists(cache_name):
+        print "Hit a cache extracting flow lengths!"
         with open(cache_name) as f:
-            data = f.readlines()[0]
-            if data == '':
-                return []
-            lengths = [Decimal(x) for x in data.split(',')]
-            return lengths
+            with flock.Flock(f, flock.LOCK_EX) as lock:
+                data = f.readlines()[0]
+                if data == '':
+                    return []
+                lengths = [Decimal(x) for x in data.split(',')]
+                return lengths
 
     # Get all the TCP packets, then look for SYNs and FINs.
     metadatas = extract_expcap_metadatas(filename)
@@ -458,7 +587,8 @@ def extract_flow_lengths(filename):
     if len(flows) > 0:
         print "Warning: Saw ", len(flows), " SYNs for flows that weren't closed"
     with open(cache_name, 'w') as f:
-        f.write(','.join([str(length) for length in flow_lengths]))
+        with flock.Flock(f, flock.LOCK_EX) as lock:
+            f.write(','.join([str(length) for length in flow_lengths]))
 
     print "Flow count is ", flow_count
     return flow_lengths
@@ -468,12 +598,14 @@ def extract_flow_sizes(filename):
     cache_name = generate_cache_name(filename, '_flow_sizes', None, None, None)
 
     if os.path.exists(cache_name):
+        print "Hit a cache extracting flow sizes!"
         with open(cache_name) as f:
-            data = f.readlines()[0]
-            if data == '':
-                return []
-            lengths = [int(x) for x in data.split(',')]
-            return lengths
+            with flock.Flock(f, flock.LOCK_EX) as lock:
+                data = f.readlines()[0]
+                if data == '':
+                    return []
+                lengths = [int(x) for x in data.split(',')]
+                return lengths
 
     # Get all the TCP packets, then look for SYNs and FINs.
     metadatas = extract_expcap_metadatas(filename)
@@ -510,7 +642,8 @@ def extract_flow_sizes(filename):
         print "Warning: Saw ", len(flows), " SYNs for flows that weren't closed"
 
     with open(cache_name, 'w') as f:
-        f.write(','.join([str(length) for length in flow_sizes]))
+        with flock.Flock(f, flock.LOCK_EX) as lock:
+            f.write(','.join([str(length) for length in flow_sizes]))
 
     print "Flow count is ", flow_count
     return flow_sizes

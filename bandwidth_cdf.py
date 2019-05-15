@@ -36,13 +36,19 @@ def main(args):
             for i in range(len(incoming_bandwidths)):
                 incoming_bandwidths[i] = float(incoming_bandwidths[i])
 
-            bins = np.append(np.linspace(min(incoming_bandwidths), max(incoming_bandwidths), 1000), np.inf)
+            min_lim = min(incoming_bandwidths)
+            max_lim = max(incoming_bandwidths)
+            small_diff = (min_lim + max_lim) / 10000.0
+            bins = np.append(np.linspace(min_lim, max_lim + small_diff, 1000), np.inf)
             plt.figure(1)
             plt.hist(incoming_bandwidths, cumulative=True, bins=bins, histtype='step', normed=True, label=label + ' ' + label_suffix)
 
             for i in range(len(outgoing_bandwidths)):
                 outgoing_bandwidths[i] = float(outgoing_bandwidths[i])
-            bins = np.append(np.linspace(min(outgoing_bandwidths), max(outgoing_bandwidths), 1000), np.inf)
+            min_lim = min(outgoing_bandwidths)
+            max_lim = max(outgoing_bandwidths)
+            small_diff = (min_lim + max_lim) / 10000.0
+            bins = np.append(np.linspace(min_lim, max_lim + small_diff, 1000), np.inf)
             plt.figure(2)
             plt.hist(outgoing_bandwidths, cumulative=True, bins=bins, histtype='step', normed=True, label=label + ' ' + label_suffix)
 

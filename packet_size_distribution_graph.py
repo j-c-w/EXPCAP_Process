@@ -38,7 +38,10 @@ def main(args):
         print "Median is ", np.median(outgoing_packet_sizes)
         print "Deviation is ", np.std(outgoing_packet_sizes)
         outgoing_packet_sizes = np.asarray(outgoing_packet_sizes)
-        bins = np.append(np.linspace(min(outgoing_packet_sizes), max(outgoing_packet_sizes) + 1, 1000), [np.inf])
+        min_lim = min(outgoing_packet_sizes)
+        max_lim = max(outgoing_packet_sizes)
+        small_diff = (min_lim + max_lim) / 10000.0
+        bins = np.append(np.linspace(min_lim, max_lim + small_diff, 1000), [np.inf])
         plt.figure(1)
         plt.hist(outgoing_packet_sizes, bins=bins, cumulative=True,
                  histtype='step', normed=True, label=label)
@@ -50,7 +53,10 @@ def main(args):
         print "Median is ", np.median(incoming_packet_sizes)
         print "Deviation is ", np.std(incoming_packet_sizes)
         incoming_packet_sizes = np.asarray(incoming_packet_sizes)
-        bins = np.append(np.linspace(min(incoming_packet_sizes), max(incoming_packet_sizes) + 1, 1000), [np.inf])
+        min_lim = min(incoming_packet_sizes)
+        max_lim = max(incoming_packet_sizes)
+        small_diff = (min_lim + max_lim) / 10000.0
+        bins = np.append(np.linspace(min_lim, max_lim + small_diff, 1000), [np.inf])
         plt.figure(2)
         plt.hist(incoming_packet_sizes, bins=bins, cumulative=True,
                  histtype='step', normed=True, label=label)
@@ -62,9 +68,10 @@ def main(args):
         print "Median is ", np.median(both_packet_sizes)
         print "Deviation is ", np.std(both_packet_sizes)
         both_packet_sizes = np.asarray(both_packet_sizes)
-        bins = np.append(np.linspace(min(both_packet_sizes),
-                                     max(both_packet_sizes) + 1,
-                                     1000), [np.inf])
+        min_lim = min(both_packet_sizes)
+        max_lim = max(both_packet_sizes)
+        small_diff = (min_lim + max_lim) / 10000.0
+        bins = np.append(np.linspace(min_lim, max_lim + small_diff, 1000), [np.inf])
 
         plt.figure(3)
         plt.hist(both_packet_sizes, bins=bins, cumulative=True,

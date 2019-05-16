@@ -2,6 +2,7 @@ from decimal import *
 
 # This is a constant to convert from bits to bytes.
 SECOND_PER_BYTE_WIRE = Decimal(8.0 / 10000000000.0)
+DEBUG = False
 
 
 class ExpcapPacket(object):
@@ -35,7 +36,8 @@ class ExpcapPacket(object):
 
         self.ethertype = packet_data[24:28]
         if self.ethertype == "ffff":
-            print "Expcap format packet: do not use."
+            if DEBUG:
+                print "Expcap format packet: do not use."
             self.padding_packet = True
             return
         else:
@@ -43,9 +45,10 @@ class ExpcapPacket(object):
 
         if self.ethertype != '0800':
             print "Error: Packet with unsupported ethertype",
-            print self.ethertype
-            print input_string
-            print self.ethertype
+            if DEBUG:
+                print self.ethertype
+                print input_string
+                print self.ethertype
             return
 
         # And the IP Source and destination addresses.
@@ -53,28 +56,41 @@ class ExpcapPacket(object):
         self.src_addr = packet_data[52:60]
         self.dst_addr = packet_data[60:68]
         self.ip_protocol = packet_data[46:48]
-        self.ip_length = int(packet_data[42:46], 16)
+        # This is an offset for all future headers.
+        self.ip_hdr_len = int(packet_data[29:30], 16)
+        self.ip_length = int(packet_data[32:36], 16)
         self.fully_processed_ip = True
+
+        # The offset is the 'normal' header length times 4 (to convert to bytes) times 2 (to convert to hex characters, which is what we work in.
+        offset = (self.ip_hdr_len - 5) * 4 * 2
 
         if self.ip_protocol == "06":
             # This is a TCP packet.
             self.is_tcp = True
-            self.src_port = packet_data[68:72]
-            self.dst_port = packet_data[72:76]
-            self.tcp_seq_no = packet_data[76:84]
-            self.tcp_ack_no = packet_data[84:92]
+            self.src_port = packet_data[68 + offset:72 + offset]
+            self.dst_port = packet_data[72 + offset:76 + offset]
+            self.tcp_seq_no = packet_data[76 + offset:84 + offset]
+            self.tcp_ack_no = packet_data[84 + offset:92 + offset]
+            print packet_data[92 + offset:93 + offset]
+            self.tcp_header_length = int(packet_data[92 + offset:93 + offset], 16)
 
-            tcp_flags = int(packet_data[94:96], 16)
+            tcp_flags = int(packet_data[94 + offset:96 + offset], 16)
             print tcp_flags
             self.is_tcp_rst = tcp_flags & (2 ** 2)
             self.is_tcp_syn = tcp_flags & (2 ** 1)
             self.is_tcp_fin = tcp_flags & (2 ** 0)
-            # -20 for IP header and -20 for TCP header.
-            self.tcp_data_length = self.ip_length - 20 - 20
-            if self.is_tcp_syn:
+            # -20 for IP header and -4 * tcp_header length
+            # for TCP header.
+            self.tcp_data_length = self.ip_length - 20 - (4 * self.tcp_header_length)
+            if DEBUG and self.is_tcp_syn:
                 print "Is syn!"
-            if self.is_tcp_fin:
+                print packet_data
+            if DEBUG and self.is_tcp_fin:
                 print "Is Fin!"
+                print packet_data
+            if DEBUG and self.is_tcp_rst:
+                print "Is RST!"
+                print packet_data
             self.fully_processed_tcp = True
         else:
             self.is_tcp = False

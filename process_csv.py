@@ -519,6 +519,8 @@ def extract_utilizations(filename, window_size, count=None, to_ip=None, from_ip=
 
                         bigger_utilizations.append(sum(new_utilizations))
                         bigger_windows.append((window_start, window_end))
+            # Before we return, werite the new utiliations out to disk.
+            save_utilizations_in_cache(cache_name, bigger_windows, bigger_utilizations)
             return bigger_windows, bigger_utilizations
 
     (windows, packets) = extract_windows(filename, window_size, count=count,
@@ -547,12 +549,15 @@ def extract_utilizations(filename, window_size, count=None, to_ip=None, from_ip=
             if utilization > 1:
                 print "Greater than one usage: see last ", len(packets[i]), "utilizations"
 
+    save_utilizations_in_cache(cache_name, windows, usages)
+    return (windows, usages)
+
+
+def save_utilizations_in_cache(cache_name, windows, usages):
     with open(cache_name, 'w') as f:
         with flock.Flock(f, flock.LOCK_EX) as lock:
             f.write(windows_list_to_string(windows))
             f.write(','.join([str(usage) for usage in usages]))
-
-    return (windows, usages)
 
 
 def extract_sizes_by_window(filename, window_size, count=None, to_ip=None,

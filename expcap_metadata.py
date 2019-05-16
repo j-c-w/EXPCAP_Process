@@ -14,7 +14,7 @@ class ExpcapPacket(object):
         input_string = input_string.split(',')
         self.number = int(input_string[0])
         self.arrival_time = Decimal(input_string[7])
-        self.packet_data = input_string[8]
+        packet_data = input_string[8]
         # Note: the length of the input string isn't really
         # representative.  It seems to be trimmed at 64 bytes.
         self.length = int(input_string[4]) - 8
@@ -33,11 +33,10 @@ class ExpcapPacket(object):
         self.length_time = self.end_time - self.start_time
         self.wire_length_time = self.wire_end_time - self.wire_start_time
 
-        self.ethertype = self.packet_data[24:28]
+        self.ethertype = packet_data[24:28]
         if self.ethertype == "ffff":
             print "Expcap format packet: do not use."
             self.padding_packet = True
-            self.packet_data = None
             return
         else:
             self.padding_packet = False
@@ -47,26 +46,25 @@ class ExpcapPacket(object):
             print self.ethertype
             print input_string
             print self.ethertype
-            self.packet_data = None
             return
 
         # And the IP Source and destination addresses.
         self.is_ip = True
-        self.src_addr = self.packet_data[52:60]
-        self.dst_addr = self.packet_data[60:68]
-        self.ip_protocol = self.packet_data[46:48]
-        self.ip_length = int(self.packet_data[42:46], 16)
+        self.src_addr = packet_data[52:60]
+        self.dst_addr = packet_data[60:68]
+        self.ip_protocol = packet_data[46:48]
+        self.ip_length = int(packet_data[42:46], 16)
         self.fully_processed_ip = True
 
         if self.ip_protocol == "06":
             # This is a TCP packet.
             self.is_tcp = True
-            self.src_port = self.packet_data[68:72]
-            self.dst_port = self.packet_data[72:76]
-            self.tcp_seq_no = self.packet_data[76:84]
-            self.tcp_ack_no = self.packet_data[84:92]
+            self.src_port = packet_data[68:72]
+            self.dst_port = packet_data[72:76]
+            self.tcp_seq_no = packet_data[76:84]
+            self.tcp_ack_no = packet_data[84:92]
 
-            tcp_flags = int(self.packet_data[94:96], 16)
+            tcp_flags = int(packet_data[94:96], 16)
             print tcp_flags
             self.is_tcp_rst = tcp_flags & (2 ** 2)
             self.is_tcp_syn = tcp_flags & (2 ** 1)
@@ -81,7 +79,6 @@ class ExpcapPacket(object):
         else:
             self.is_tcp = False
 
-        self.packet_data = None
 
 
 if __name__ == "__main__":

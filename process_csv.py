@@ -549,9 +549,10 @@ def extract_utilizations(filename, window_size, count=None, to_ip=None, from_ip=
         total_window_time = window_end - window_start
         time_used = Decimal(0.0)
         for (fraction, packet) in packets[i]:
-            print fraction
-            print packet.wire_length_time
-            print hash(packet)
+            if debug:
+                print fraction
+                print packet.wire_length_time
+                print hash(packet)
             time_used += fraction * packet.wire_length_time
 
         utilization = time_used / total_window_time

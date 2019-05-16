@@ -677,7 +677,9 @@ def extract_flow_lengths(filename):
     # Get all the TCP packets, then look for SYNs and FINs.
     metadatas = extract_expcap_metadatas(filename)
 
+    debug = False
     flows = {}
+    deleted_flows = {}
     flow_count = 0
     flow_lengths = []
     for packet in metadatas:
@@ -685,6 +687,8 @@ def extract_flow_lengths(filename):
             identifier = tcp_flow_identifier(packet)
             flows[identifier] = packet.wire_start_time
             flow_count += 1
+            if debug:
+                print "Adding entry for", identifier
 
         if packet.is_ip and packet.is_tcp and (packet.is_tcp_fin or packet.is_tcp_rst):
             identifier = tcp_flow_identifier(packet)
@@ -694,8 +698,14 @@ def extract_flow_lengths(filename):
                 # everything twice.  We'll only delete it on
                 # the first FIN, but that's OK.
                 del flows[identifier]
+                if debug:
+                    deleted_flows[identifier] = True
+                    print "Removing entry for ", identifier
             else:
                 print "Warning! Found a FIN/RST for a flow we didn't see a SYN for!"
+                if debug:
+                    if identifier in deleted_flows:
+                        print "Actually, we did, it's just closed!"
 
     if len(flows) > 0:
         print "Warning: Saw ", len(flows), " SYNs for flows that weren't closed"

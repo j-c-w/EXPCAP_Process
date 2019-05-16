@@ -207,31 +207,42 @@ def find_bursts(filename, count=None, ipg_threshold=20000, packet_threshold=20, 
     if len(metadatas) == 0:
         return []
 
-    time = metadatas[0].wire_start_time
+    time = metadatas[0].wire_end_time
+    last_packet = metadatas[0]
     burst_count = 0
     current_burst = []
     bursts = []
+    print "IPG Threshold is ", ipg_threshold
+    print "Packet threshold is", packet_threshold
     for packet in metadatas[1:]:
         next_time = packet.wire_start_time
 
         if next_time - time < ipg_threshold:
             burst_count += 1
+            # A burst starts with the last packet.
+            if len(current_burst) == 0:
+                current_burst.append(last_packet)
             current_burst.append(packet)
         else:
             burst_count = 0
             if len(current_burst) > packet_threshold:
                 bursts.append(current_burst)
                 current_burst = []
-        time = next_time
+            current_burst = []
+
+        time = packet.wire_end_time
+        last_packet = packet
 
     if len(current_burst) > packet_threshold:
         bursts.append(current_burst)
 
     total_bursts = sum([len(burst) for burst in bursts])
-    # I think we're storing about 100 bytes of info per packet.
+    print "We have a total of ", total_bursts, "packets in bursts"
+    # Tests show we're storing about 600 bytes of info per
+    # packet.
     # Arbitrarily, let's try to keep the pickle size below
-    # 300 MB.
-    # So, that means we need less than 3 million total packets
+    # 4 GB.
+    # So, that means we need less than 6 million total packets
     # to be able to save this to the disk.
     if total_bursts < 3000000:
         with open(cache_name, 'w') as f:

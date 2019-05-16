@@ -8,6 +8,7 @@ import numpy as np
 import process_csv
 import sys
 
+MICROBURST_DEBUG = False
 
 def microburst_analyze(bursts, identifier, pcap_file, label, id_base):
     print identifier, " Number of bursts", len(bursts)
@@ -32,6 +33,14 @@ def microburst_analyze(bursts, identifier, pcap_file, label, id_base):
         end_time = burst[len(burst) - 1].wire_end_time
         total_time_in_use = Decimal(sum([packet.wire_length_time for packet in burst]))
         bandwidths.append(Decimal(10000.0) * (total_time_in_use / (end_time - start_time)))
+        if MICROBURST_DEBUG:
+            for packet in burst:
+                print "Packet time is ", packet.wire_start_time
+                print "Packet size is ", packet.length
+                print "Packet end time is ", packet.wire_end_time
+            print "Time in use", total_time_in_use
+            print "Total time is ", end_time - start_time
+            print "Usage is ", bandwidths[-1]
 
     for i in range(len(bandwidths)):
         bandwidths[i] = float(bandwidths[i])

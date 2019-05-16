@@ -393,7 +393,7 @@ def extract_windows(filename, window_size, count=None, to_ip=None, from_ip=None)
                 fraction_in_window = (window_end - start_packet.wire_start_time) / start_packet.wire_length_time
                 packet_groups.append([(fraction_in_window, start_packet)])
             else:
-                assert start_packet.wire_end_time < window_start or start_packet.wire_start_time > window_end
+                assert start_packet.wire_end_time <= window_start or start_packet.wire_start_time >= window_end
                 # The packet is entirely outside the window.
                 packet_groups.append([])
 

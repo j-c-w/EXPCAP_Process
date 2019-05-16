@@ -45,11 +45,17 @@ def main(args):
             for i in range(len(incoming_x_values)):
                 incoming_x_values[i] = incoming_x_values[i][0] - zero_value
 
-            plt.figure(2)
-            plt.plot(incoming_x_values, incoming_bandwidths, label=label + ' ' + label_suffix)
+            if len(incoming_x_values) < 3000000:
+                plt.figure(2)
+                plt.plot(incoming_x_values, incoming_bandwidths, label=label + ' ' + label_suffix)
+            else:
+                print "Error: Skipping line ", label + ' ' + label_suffix, " because it has more than  3 million entries."
 
-            plt.figure(1)
-            plt.plot(outgoing_x_values, outgoing_bandwidths, label=label + ' ' + label_suffix)
+            if len(outgoing_x_values) < 3000000:
+                plt.figure(1)
+                plt.plot(outgoing_x_values, outgoing_bandwidths, label=label + ' ' + label_suffix)
+            else:
+                print "Error: Skipping line ", label + ' ' + label_suffix, " because it has more than  3 million entries."
 
     if args.title:
         plt.figure(1)

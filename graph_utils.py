@@ -96,7 +96,8 @@ def latexify(fig_width=None, fig_height=None, columns=2):
               'ytick.labelsize': 10,
               # 'text.usetex': True,
               'figure.figsize': [fig_width,fig_height],
-              'font.family': 'serif'
+              'font.family': 'serif',
+              'figure.autolayout': True
     }
 
     matplotlib.rcParams.update(params)

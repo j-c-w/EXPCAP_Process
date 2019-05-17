@@ -14,6 +14,9 @@ SYN_FLAG = 4
 RST_FLAG = 8
 FIN_FLAG = 16
 PADDING_PACKET = 32
+ENABLED = 64
+# Everything but 'ENABLED'.  This is used to '&' remove the ENABLED flag.
+NOT_ENABLED = HEADER_IP + HEADER_TCP + SYN_FLAG + RST_FLAG + FIN_FLAG + PADDING_PACKET
 # These are flasg for extracting from our combnined data types.
 FIRST_32 = 0xFFFFFFFF00000000
 LAST_32 = 0x00000000FFFFFFFF
@@ -106,51 +109,65 @@ class ExpcapPacket(object):
                 print "Is RST!"
                 print packet_data
 
-    def length_time():
+    def length_time(self):
         return self.end_time() - self.start_time
 
-    def wire_length_time():
+    def wire_length_time(self):
         return self.wire_end_time() - self.wire_start_time()
 
-    def wire_start_time():
+    def wire_start_time(self):
         return self.start_time - preamble_wire_length
 
-    def end_time():
+    def end_time(self):
         return self.start_time + Decimal(self.length) * SECOND_PER_BYTE_WIRE
 
-    def wire_end_time():
+    def wire_end_time(self):
         return self.wire_start_time() + Decimal(self.wire_length()) * SECOND_PER_BYTE_WIRE
 
-    def wire_length():
+    def wire_length(self):
         return self.length + 24.0
 
-    def src_addr():
+    def src_addr(self):
         return (self.src_addr_dst_addr & FIRST_32) >> 32
 
-    def dst_addr():
+    def dst_addr(self):
         return (self.dst_addr & LAST_32)
 
-    def src_port():
+    def src_port(self):
         return (self.src_port_dst_port & FIRST_16) >> 16
 
-    def dst_port():
+    def dst_port(self):
         return (self.src_port_dst_port & LAST_16)
 
-    def is_tcp_rst():
+    def is_tcp_rst(self):
         return (self.flags & RST_FLAG)
 
-    def is_tcp_syn():
+    def is_tcp_syn(self):
         return self.flags & SYN_FLAG
 
-    def is_tcp_fin():
+    def is_tcp_fin(self):
         return self.flags & FIN_FLAG
 
-    def is_ip():
+    def is_ip(self):
         return self.flags & HEADER_IP
 
-    def is_tcp():
+    def is_tcp(self):
         return self.flags & HEADER_TCP
 
+    def is_padding(self):
+        return self.flags & PADDING_PACKET
+
+    def set_enabled(self):
+        self.flags = self.flags | ENABLED
+
+    def set_disabled(self):
+        self.flags = self.flags & NOT_ENABLED
+
+    def is_enabled(self):
+        return self.flags & ENABLED
+
+    def is_disabled(self):
+        return not self.flags & ENABLED
 
 def get_size(obj, seen=None):
     """Recursively finds size of objects"""

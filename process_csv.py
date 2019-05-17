@@ -31,6 +31,33 @@ def ip_to_hex(ip):
     return hex_no
 
 
+def get_first_enabled(metadatas):
+    # Return the index of the first enabled packet.
+    start = 0
+    length = len(metadatas)
+    while start < length and metadatas[start].is_disabled():
+        start += 1
+
+    if metadatas[start].is_disabled():
+        # All the packets are disabled.
+        return None
+
+    return start
+
+
+def get_last_enabled(metadatas):
+    # Return the index of the first enabled packet.
+    end = len(metadatas) - 1
+    while end > 0 and metadatas[end].is_disabled():
+        end -= 1
+
+    if metadatas[end].is_disabled():
+        # All the packets are disabled.
+        return None
+
+    return end
+
+
 def windows_list_to_string(windows):
     return ','.join([str(w_start) + '_' + str(w_end)
                      for (w_start, w_end) in windows]) + '\n'
@@ -108,7 +135,7 @@ def extract_expcap_metadatas(filename, count=None, to_ip=None, from_ip=None):
     if filename == last_loaded_from:
         # Clone the last loaded list and send it back if this is the same
         # file as before.
-        metadata = last_loaded[:]
+        metadata = last_loaded
     else:
         metadatas_lock.acquire()
         try:
@@ -122,7 +149,7 @@ def extract_expcap_metadatas(filename, count=None, to_ip=None, from_ip=None):
                 start_time = time.time()
                 for line in lines:
                     expcap_packet = ExpcapPacket(line)
-                    if (expcap_packet.flags || expcap_metadata.PADDING_PACKET) or not (expcap_packet.flags || expcap_metadata.HEADER_IP):
+                    if expcap_packet.is_padding() or not expcap_packet.is_ip():
                         print "Extracted: ", len(metadata), "so far"
                         current_time = time.time()
                         print "Rate is ", len(metadata) / (current_time - start_time), "pps"
@@ -130,7 +157,7 @@ def extract_expcap_metadatas(filename, count=None, to_ip=None, from_ip=None):
                     metadata.append(expcap_packet)
 
             metadata.sort(key=lambda x: x.start_time)
-            last_loaded = metadata[:]
+            last_loaded = metadata
             last_loaded_from = filename
         finally:
             metadatas_lock.release()
@@ -141,24 +168,21 @@ def extract_expcap_metadatas(filename, count=None, to_ip=None, from_ip=None):
         for index in xrange(len(metadata)):
             if metadata[index].dst_addr != hex_ip:
                 deleted_count += 1
-                metadata[index] = None
+                metadata[index].set_disabled()
+            else:
+                metadata[index].set_enabled()
 
     if from_ip:
         hex_ip = ip_to_hex(from_ip)
         for index in xrange(len(metadata)):
             if metadata[index].src_addr != hex_ip:
                 deleted_count += 1
-                metadata[index] = None
+                metadata[index].set_disabled()
+            else:
+                metadata[index].set_enabled()
 
-    all_data = [None] * (len(metadata) - deleted_count)
-    index = 0
-    for data in metadata:
-        if data:
-            all_data[index] = data
-            index += 1
-
-    print "Using ", len(all_data), "packets"
-    return all_data
+    print "Using ", len(metadata) - deleted_count, "packets"
+    return metadata
 
 
 def extract_sizes(filename, count=None, to_ip=None, from_ip=None):
@@ -174,7 +198,8 @@ def extract_sizes(filename, count=None, to_ip=None, from_ip=None):
                                          from_ip=from_ip)
     sizes = []
     for expcap_packet in metadatas:
-        sizes.append(expcap_packet.length)
+        if expcap_packet.is_enabled():
+            sizes.append(expcap_packet.length)
 
     with open(cache_name, 'w') as f:
         with flock.Flock(f, flock.LOCK_EX) as lock:
@@ -204,17 +229,20 @@ def find_bursts(filename, count=None, ipg_threshold=20000, packet_threshold=20, 
 
     metadatas = extract_expcap_metadatas(filename, count=count, to_ip=to_ip, from_ip=from_ip)
 
-    if len(metadatas) == 0:
+    start = get_first_enabled(metadatas)
+    if start == None:
         return []
 
-    time = metadatas[0].wire_end_time
-    last_packet = metadatas[0]
+    time = metadatas[start].wire_end_time
+    last_packet = metadatas[start]
     burst_count = 0
     current_burst = []
     bursts = []
     print "IPG Threshold is ", ipg_threshold
     print "Packet threshold is", packet_threshold
-    for packet in metadatas[1:]:
+    for packet in metadatas[start + 1:]:
+        if packet.is_disabled():
+            continue
         next_time = packet.wire_start_time()
 
         if next_time - time < ipg_threshold:
@@ -263,13 +291,17 @@ def extract_ipgs(filename, count=None, to_ip=None, from_ip=None):
                 return [Decimal(x) for x in (f.readlines()[0].split(','))]
     metadatas = extract_expcap_metadatas(filename, count=count, to_ip=to_ip, from_ip=from_ip)
     ipgs = []
-    if len(metadatas) < 2:
-        return []
-    last_end = metadatas[0].wire_end_time
+    start = get_first_enabled(metadatas)
 
-    for expcap_packet in metadatas[1:]:
-        ipgs.append(expcap_packet.wire_end_time() - last_end)
-        last_end = expcap_packet.wire_end_time()
+    if start == None:
+        return []
+
+    last_end = metadatas[start].wire_end_time
+
+    for expcap_packet in metadatas[start + 1:]:
+        if expcap_packet.is_enabled():
+            ipgs.append(expcap_packet.wire_end_time() - last_end)
+            last_end = expcap_packet.wire_end_time()
 
     with open(cache_name, 'w') as f:
         with flock.Flock(f, flock.LOCK_EX) as lock:
@@ -290,9 +322,11 @@ def extract_times(filename, column=7, count=None, to_ip=None, from_ip=None):
 
     expcap_metadatas = \
         extract_expcap_metadatas(filename, count=count, to_ip=to_ip, from_ip=from_ip)
+    start = get_first_enabled(expcap_metadatas)
 
     for expcap in expcap_metadatas:
-        times.append(expcap.wire_start_time)
+        if expcap.is_enabled():
+            times.append(expcap.wire_start_time)
 
     with open(cache_name, 'w') as f:
         with flock.Flock(f, flock.LOCK_EX) as lock:
@@ -325,11 +359,13 @@ def extract_windows(filename, window_size, count=None, to_ip=None, from_ip=None)
 
     window_size = Decimal(window_size) / Decimal(1000000000000)
     expcap_metadatas = extract_expcap_metadatas(filename, count=count, to_ip=to_ip, from_ip=from_ip)
+    start = get_first_enabled(expcap_metadatas)
+    overall_end = get_last_enabled(expcap_metadatas)
     debug = False
     packet_groups = []
     windows = []
 
-    if len(expcap_metadatas) == 0:
+    if start == None:
         print "Error: No expcap metadatas found for file ", filename
         print "With restrictions: to ip:", to_ip
         print "from_ip:", from_ip
@@ -337,8 +373,8 @@ def extract_windows(filename, window_size, count=None, to_ip=None, from_ip=None)
     
     # First, get the start and end time.  Note that the
     # packets are sorted by arrival time.
-    start_time = expcap_metadatas[0].wire_start_time()
-    end_time = expcap_metadatas[len(expcap_metadatas) - 1].wire_end_time()
+    start_time = expcap_metadatas[start].wire_start_time()
+    end_time = expcap_metadatas[overall_end].wire_end_time()
 
     # Find the number of iterations we need in the loop.
     iterations = int((end_time - start_time) / window_size)
@@ -352,7 +388,7 @@ def extract_windows(filename, window_size, count=None, to_ip=None, from_ip=None)
 
     # Keep track of the first relevant packet for each
     # time interval.
-    packet_start_index = 0
+    packet_start_index = start
     one = Decimal(1.0)
     for index in xrange(iterations):
         window_start = start_time + Decimal(index) * window_size
@@ -367,8 +403,10 @@ def extract_windows(filename, window_size, count=None, to_ip=None, from_ip=None)
             continue
         # Get all the packets in this range:
         packet_end_index = packet_start_index
-        while packet_end_index < len(expcap_metadatas) and \
-                expcap_metadatas[packet_end_index].wire_end_time() < window_end:
+        while packet_end_index <= overall_end and \
+                (expcap_metadatas[packet_end_index].wire_end_time() < window_end or \
+                # We always need to continue through disabled packets.
+                 expcap_metadatas[packet_end_index].is_disabled()):
             packet_end_index += 1
 
         if debug:
@@ -377,7 +415,8 @@ def extract_windows(filename, window_size, count=None, to_ip=None, from_ip=None)
         # If we've gone past the end, teh last packet is clearly just
         # the last one in the list.
         if packet_end_index == len(expcap_metadatas):
-            packet_end_index -= 1
+            packet_end_index = overall_end
+        assert expcap_metadatas[packet_end_index].is_enabled()
 
         # Now, compute how much of the window is filled with
         # packets.  There are edge cases at the start
@@ -447,7 +486,8 @@ def extract_windows(filename, window_size, count=None, to_ip=None, from_ip=None)
             # they fraction 1.0 in the window
             if debug:
                 print "Added all of indexes", index
-            packets_in_window.append((one, expcap_metadatas[index]))
+            if expcap_metadatas[index].is_enabled():
+                packets_in_window.append((one, expcap_metadatas[index]))
 
         if debug:
             print "Adding partial packet at index", packet_end_index
@@ -478,6 +518,7 @@ def extract_windows(filename, window_size, count=None, to_ip=None, from_ip=None)
             print "Added packets with hashes:", 
             for (fraction, packet) in packets_in_window:
                 print hash(packet),
+                assert packet.is_enabled()
             print ""
         # Make the rate calculation here:
         packet_groups.append(packets_in_window)
@@ -694,6 +735,8 @@ def extract_flow_lengths(filename):
     flow_count = 0
     flow_lengths = []
     for packet in metadatas:
+        if packet.is_disabled():
+            continue
         if packet.is_ip() and packet.is_tcp() and packet.is_tcp_syn():
             identifier = tcp_flow_identifier(packet)
             flows[identifier] = packet.wire_start_time()
@@ -748,6 +791,9 @@ def extract_flow_sizes(filename):
     flow_count = 0
     flow_sizes = []
     for packet in metadatas:
+        if packet.is_disabled():
+            continue
+
         if packet.is_ip() and packet.is_tcp() and packet.is_tcp_syn():
             # print "Starting flow for ", packet.packet_data
             identifier = tcp_flow_identifier(packet)

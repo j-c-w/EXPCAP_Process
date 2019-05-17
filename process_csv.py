@@ -123,9 +123,20 @@ def tcp_flow_identifier(packet):
     # Note that this needs to identify /flows/ so things
     # need to be in the same order independent of whether
     # this is going to or from the server.
-    data = [packet.src_addr_dst_addr, packet.src_port_dst_port]
+    data = sorted([
+            packet.src_addr(), packet.dst_addr(),
+            packet.src_port(), packet.dst_port()
+    ])
 
-    return '_'.join(sorted(data))
+    # Each elment is 32 at max.  Sum  these.
+    dsum = 0
+    offset = 32
+    for d in data:
+        dsum += d << offset
+        offset += 32
+
+    print dsum
+    return dsum
 
 
 metadatas_lock = threading.Lock()
@@ -729,7 +740,10 @@ def extract_flow_lengths(filename):
         print "Hit a cache extracting flow lengths!"
         with open(cache_name) as f:
             with flock.Flock(f, flock.LOCK_EX) as lock:
-                data = f.readlines()[0]
+                lines = f.readlines()
+                if len(lines) == 0:
+                    return []
+                data = lines[0]
                 if data == '':
                     return []
                 lengths = [Decimal(x) for x in data.split(',')]
@@ -800,8 +814,10 @@ def extract_flow_sizes(filename):
     flows = {}
     flow_count = 0
     flow_sizes = []
+    disabled_count = 0
     for packet in metadatas:
         if packet.is_disabled():
+            disabled_count += 1
             continue
 
         if packet.is_ip() and packet.is_tcp() and packet.is_tcp_syn():
@@ -836,4 +852,5 @@ def extract_flow_sizes(filename):
             f.write(','.join([str(length) for length in flow_sizes]))
 
     print "Flow count is ", flow_count
+    print disabled_count, "Packets disbaled"
     return flow_sizes

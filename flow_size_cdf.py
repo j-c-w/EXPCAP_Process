@@ -51,6 +51,7 @@ def main(args):
     graph_utils.set_integer_ticks()
     graph_utils.set_non_negative_axes()
     graph_utils.set_ticks()
+    plt.xticks(rotation=90)
     filename = args.output_name + '_flow_sizes.eps'
     plt.savefig(filename)
     print "Done! File is in ", filename

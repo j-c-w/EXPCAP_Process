@@ -30,7 +30,16 @@ class ExpcapPacket(object):
     # does.
     __slots__ = ("start_time", "flags", "src_addr_dst_addr", "src_port_dst_port", "tcp_data_length", "length")
 
-    def __init__(self, input_string):
+    def __init__(self, input_string, skip=False):
+        self.start_time = None
+        self.flags = None
+        self.src_addr_dst_addr = None
+        self.src_port_dst_port = None
+        self.tcp_data_length = None
+        self.length = None
+        if skip:
+            # This is used if we are loading one of these from a backup file.
+            return
         # This can be used to check if all the fields have
         # been filled in, e.g. in the case of a non-IP packet
         # they won't  be.
@@ -131,7 +140,7 @@ class ExpcapPacket(object):
         return (self.src_addr_dst_addr & FIRST_32) >> 32
 
     def dst_addr(self):
-        return (self.dst_addr & LAST_32)
+        return (self.src_addr_dst_addr & LAST_32)
 
     def src_port(self):
         return (self.src_port_dst_port & FIRST_16) >> 16
@@ -169,6 +178,36 @@ class ExpcapPacket(object):
     def is_disabled(self):
         return not self.flags & ENABLED
 
+    def get_state(self):
+        ("start_time", "flags", "src_addr_dst_addr", "src_port_dst_port", "tcp_data_length", "length")
+        fields_list = [self.start_time, self.flags, self.src_addr_dst_addr, self.src_port_dst_port, self.tcp_data_length, self.length]
+        assert len(fields_list) == len(self.__slots__)
+        # You need to add extra fields to the pickle string if you're going to do this.
+
+        return ",".join([str(x) for x in fields_list])
+
+    def __decimal_or_none(self, x):
+        if x == "None":
+            return None
+        else:
+            return Decimal(x)
+
+    def __int_or_none(self, x):
+        if x == "None":
+            return None
+        else:
+            return int(x)
+
+    def set_state(self, string):
+        elements = string.split(',')
+        print elements
+        self.start_time = self.__decimal_or_none(elements[0])
+        self.flags = self.__int_or_none(elements[1])
+        self.src_addr_dst_addr = self.__int_or_none(elements[2])
+        self.src_port_dst_port = self.__int_or_none(elements[3])
+        self.tcp_data_length = self.__int_or_none(elements[4])
+        self.length = self.__int_or_none(elements[5])
+
 def get_size(obj, seen=None):
     """Recursively finds size of objects"""
     size = sys.getsizeof(obj)
@@ -191,6 +230,39 @@ def get_size(obj, seen=None):
     elif hasattr(obj, '__slots__'):
         size += get_size(obj.__slots__, seen)
     return size
+
+
+def double_list_save_expcaps_to(f, expcap_list):
+    strings = []
+    for sub_list in expcap_list:
+        strings.append('_'.join([x.get_state() for x in sub_list]))
+
+    f.write("+".join(strings))
+
+
+def double_list_load_expcaps_from(f):
+    lines = f.readlines()
+    if len(lines) == 0:
+        return []
+    bursts = lines[0].split("+")
+    for j in range(len(bursts)):
+        line = bursts[j]
+        if line == '':
+            bursts[j] = []
+        else:
+            packets = line.split('_')
+            for i in range(len(packets)):
+                packet = ExpcapPacket('', skip=True)
+                packet.set_state(packets[i])
+                packets[i] = packet
+            bursts[j] = packets
+
+    return bursts
+
+
+def print_expcap_list_size(elist):
+    print "List size is", get_size(elist)
+
 
 if __name__ == "__main__":
     import sys

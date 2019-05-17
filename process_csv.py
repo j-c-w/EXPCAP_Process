@@ -1,11 +1,10 @@
 from decimal import *
 import time
 from expcap_metadata import ExpcapPacket
-import numpy as np
+import expcap_metadata
 import os
 import re
 import sys
-import pickle
 import glob
 import flock
 import threading
@@ -13,6 +12,8 @@ import threading
 # This is a little hack to make loading repeatedly from the same file faster.
 last_loaded = None
 last_loaded_from = None
+PROCESS_CSV_DEBUG = True
+
 
 def ip_to_hex(ip):
     if len(ip.split('.')) != 4:
@@ -28,17 +29,18 @@ def ip_to_hex(ip):
     for number in ip.split('.'):
         hex_no += extend(hex(int(number))[2:])
 
-    return hex_no
+    return int(hex_no, 16)
 
 
 def get_first_enabled(metadatas):
     # Return the index of the first enabled packet.
     start = 0
     length = len(metadatas)
+
     while start < length and metadatas[start].is_disabled():
         start += 1
 
-    if metadatas[start].is_disabled():
+    if start == length or metadatas[start].is_disabled():
         # All the packets are disabled.
         return None
 
@@ -48,10 +50,11 @@ def get_first_enabled(metadatas):
 def get_last_enabled(metadatas):
     # Return the index of the first enabled packet.
     end = len(metadatas) - 1
+
     while end > 0 and metadatas[end].is_disabled():
         end -= 1
 
-    if metadatas[end].is_disabled():
+    if end < 0 or metadatas[end].is_disabled():
         # All the packets are disabled.
         return None
 
@@ -166,7 +169,7 @@ def extract_expcap_metadatas(filename, count=None, to_ip=None, from_ip=None):
     if to_ip:
         hex_ip = ip_to_hex(to_ip)
         for index in xrange(len(metadata)):
-            if metadata[index].dst_addr != hex_ip:
+            if metadata[index].dst_addr() != hex_ip:
                 deleted_count += 1
                 metadata[index].set_disabled()
             else:
@@ -175,13 +178,15 @@ def extract_expcap_metadatas(filename, count=None, to_ip=None, from_ip=None):
     if from_ip:
         hex_ip = ip_to_hex(from_ip)
         for index in xrange(len(metadata)):
-            if metadata[index].src_addr != hex_ip:
+            if metadata[index].src_addr() != hex_ip:
                 deleted_count += 1
                 metadata[index].set_disabled()
             else:
                 metadata[index].set_enabled()
 
     print "Using ", len(metadata) - deleted_count, "packets"
+    if PROCESS_CSV_DEBUG:
+        print "This uses ", expcap_metadata.print_expcap_list_size(metadata)
     return metadata
 
 
@@ -224,7 +229,7 @@ def find_bursts(filename, count=None, ipg_threshold=20000, packet_threshold=20, 
         print "Found a cache!  Going to use it!"
         with open(cache_name) as f:
             with flock.Flock(f, flock.LOCK_EX) as lock:
-                bursts = pickle.load(f)
+                bursts = expcap_metadata.double_list_load_expcaps_from(f)
                 return bursts
 
     metadatas = extract_expcap_metadatas(filename, count=count, to_ip=to_ip, from_ip=from_ip)
@@ -233,7 +238,7 @@ def find_bursts(filename, count=None, ipg_threshold=20000, packet_threshold=20, 
     if start == None:
         return []
 
-    time = metadatas[start].wire_end_time
+    time = metadatas[start].wire_end_time()
     last_packet = metadatas[start]
     burst_count = 0
     current_burst = []
@@ -275,7 +280,7 @@ def find_bursts(filename, count=None, ipg_threshold=20000, packet_threshold=20, 
     if total_bursts < 10000000:
         with open(cache_name, 'w') as f:
             with flock.Flock(f, flock.LOCK_EX) as lock:
-                pickle.dump(bursts, f)
+                expcap_metadata.double_list_save_expcaps_to(f, bursts)
     else:
         print "WARNING: Burst too big, not caching."
 
@@ -296,7 +301,7 @@ def extract_ipgs(filename, count=None, to_ip=None, from_ip=None):
     if start == None:
         return []
 
-    last_end = metadatas[start].wire_end_time
+    last_end = metadatas[start].wire_end_time()
 
     for expcap_packet in metadatas[start + 1:]:
         if expcap_packet.is_enabled():
@@ -326,7 +331,7 @@ def extract_times(filename, column=7, count=None, to_ip=None, from_ip=None):
 
     for expcap in expcap_metadatas:
         if expcap.is_enabled():
-            times.append(expcap.wire_start_time)
+            times.append(expcap.wire_start_time())
 
     with open(cache_name, 'w') as f:
         with flock.Flock(f, flock.LOCK_EX) as lock:
@@ -440,7 +445,7 @@ def extract_windows(filename, window_size, count=None, to_ip=None, from_ip=None)
                 packet_groups.append([(fraction_in_window, start_packet)])
             elif start_packet.wire_end_time() > window_end and \
                     start_packet.wire_start_time() < window_end:
-                fraction_in_window = (window_end - start_packet.wire_start_time) / start_packet.wire_length_time
+                fraction_in_window = (window_end - start_packet.wire_start_time()) / start_packet.wire_length_time()
                 packet_groups.append([(fraction_in_window, start_packet)])
             else:
                 assert start_packet.wire_end_time() <= window_start or start_packet.wire_start_time() >= window_end
@@ -638,7 +643,11 @@ def extract_sizes_by_window(filename, window_size, count=None, to_ip=None,
                 windows = windows_list_from_string(lines[0])
                 sizes = lines[1].split(',')
                 for i in xrange(len(sizes)):
-                    sizes[i] = [int(x) for x in sizes[i].split('_')]
+                    if sizes[i] != '':
+                        this_sizes = sizes[i].split('_')
+                        sizes[i] = [int(x) for x in this_sizes]
+                    else:
+                        sizes[i] = []
                 return windows, sizes
     else:
         # Try to see if there are any multiple window size files
@@ -778,9 +787,10 @@ def extract_flow_sizes(filename):
         print "Hit a cache extracting flow sizes!"
         with open(cache_name) as f:
             with flock.Flock(f, flock.LOCK_EX) as lock:
-                data = f.readlines()[0]
-                if data == '':
+                lines = f.readlines()
+                if len(lines) == 0:
                     return []
+                data = lines[0]
                 lengths = [int(x) for x in data.split(',')]
                 return lengths
 
@@ -798,7 +808,7 @@ def extract_flow_sizes(filename):
             # print "Starting flow for ", packet.packet_data
             identifier = tcp_flow_identifier(packet)
             print "Flow ID is ", identifier
-            # print "Start time is", packet.wire_start_time
+            # print "Start time is", packet.wire_start_time()
             flows[identifier] = packet.tcp_data_length
             flow_count += 1
         elif packet.is_ip() and packet.is_tcp() and (packet.is_tcp_fin() or packet.is_tcp_rst()):

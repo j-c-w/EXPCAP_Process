@@ -24,7 +24,6 @@ def microburst_analyze(bursts, identifier, pcap_file, label, id_base):
     bins = np.append(np.linspace(min_lim, max_lim + small_diff, 1000), np.inf)
     plt.figure(1 + id_base)
     plt.hist(lengths, bins=bins, cumulative=True, histtype='step', normed=True, label=label)
-    plt.savefig('test.eps')
 
     # Plot a CDF of the bandwidth achieved in each microburst.
     bandwidths = []

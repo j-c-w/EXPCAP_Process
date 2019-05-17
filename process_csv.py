@@ -141,6 +141,34 @@ def tcp_flow_identifier(packet):
 
 metadatas_lock = threading.Lock()
 
+
+def extract_from_handle(f, count=None):
+    metadata = []
+    start_time = time.time()
+    first = True
+    extracted_count = 0
+    for line in f:
+        # The first line is the buggy CSV header.
+        if first:
+            first = False
+            continue
+        print "Looking at line ", line
+        extracted_count += 1
+        if count and extracted_count > count:
+            return metadata
+
+        expcap_packet = ExpcapPacket(line)
+        if expcap_packet.is_padding() or not expcap_packet.is_ip():
+            print "Extracted: ", len(metadata), "so far"
+            current_time = time.time()
+            print "Rate is ", len(metadata) / (current_time - start_time),
+            print "pps"
+            continue
+        metadata.append(expcap_packet)
+
+    return metadata
+
+
 def extract_expcap_metadatas(filename, count=None, to_ip=None, from_ip=None):
     global last_loaded
     global last_loaded_from
@@ -154,21 +182,7 @@ def extract_expcap_metadatas(filename, count=None, to_ip=None, from_ip=None):
         metadatas_lock.acquire()
         try:
             with open(filename) as f:
-                if count:
-                    lines = f.readlines()[1:count]
-                else:
-                    lines = f.readlines()[1:]
-
-                metadata = []
-                start_time = time.time()
-                for line in lines:
-                    expcap_packet = ExpcapPacket(line)
-                    if expcap_packet.is_padding() or not expcap_packet.is_ip():
-                        print "Extracted: ", len(metadata), "so far"
-                        current_time = time.time()
-                        print "Rate is ", len(metadata) / (current_time - start_time), "pps"
-                        continue
-                    metadata.append(expcap_packet)
+                metadata = extract_from_handle(f)
 
             metadata.sort(key=lambda x: x.start_time)
             last_loaded = metadata

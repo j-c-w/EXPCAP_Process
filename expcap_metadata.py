@@ -42,8 +42,8 @@ class ExpcapPacket(object):
             return
         # This can be used to check if all the fields have
         # been filled in, e.g. in the case of a non-IP packet
-        # they won't  be.
-        self.flags = 0
+        # they won't  be.  Packet is enabled by default.
+        self.flags = ENABLED
         # Split the packet up.
         input_string = input_string.split(',')
         # self.number = int(input_string[0])

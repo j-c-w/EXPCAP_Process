@@ -29,15 +29,15 @@ def microburst_analyze(bursts, identifier, pcap_file, label, id_base):
     # Plot a CDF of the bandwidth achieved in each microburst.
     bandwidths = []
     for burst in bursts:
-        start_time = burst[0].wire_start_time
-        end_time = burst[len(burst) - 1].wire_end_time
-        total_time_in_use = Decimal(sum([packet.wire_length_time for packet in burst]))
+        start_time = burst[0].wire_start_time()
+        end_time = burst[len(burst) - 1].wire_end_time()
+        total_time_in_use = Decimal(sum([packet.wire_length_time() for packet in burst]))
         bandwidths.append(Decimal(10000.0) * (total_time_in_use / (end_time - start_time)))
         if MICROBURST_DEBUG:
             for packet in burst:
-                print "Packet time is ", packet.wire_start_time
+                print "Packet time is ", packet.wire_start_time()
                 print "Packet size is ", packet.length
-                print "Packet end time is ", packet.wire_end_time
+                print "Packet end time is ", packet.wire_end_time()
             print "Time in use", total_time_in_use
             print "Total time is ", end_time - start_time
             print "Usage is ", bandwidths[-1]

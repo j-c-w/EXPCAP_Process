@@ -55,7 +55,7 @@ def set_log_y():
 def set_legend_below(extra=0.0):
     ax = plt.gca()
     ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.20 - extra),
-              fancybox=True, shadow=True, ncol=5)
+              fancybox=True, shadow=True, ncol=4)
 
 
 def set_ticks():

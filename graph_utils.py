@@ -28,8 +28,9 @@ def no_zeroes(data):
 def get_logspace(min_lim, max_lim):
     assert min_lim != 0 # We can't handle zeroes...
     small_diff_upper = max_lim / 10000.0
+    small_diff_lower = - (min_lim / 10000.0)
 
-    logspace_bins = np.append(np.logspace(np.log10(min_lim), np.log10(max_lim + small_diff_upper), 1000), np.inf)
+    logspace_bins = np.append(np.logspace(np.log10(min_lim + small_diff_lower), np.log10(max_lim + small_diff_upper), 1000), np.inf)
 
     return logspace_bins
 

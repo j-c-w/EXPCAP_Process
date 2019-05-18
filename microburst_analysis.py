@@ -25,6 +25,17 @@ def microburst_analyze(bursts, identifier, pcap_file, label, id_base):
     plt.figure(1 + id_base)
     plt.hist(lengths, bins=bins, cumulative=True, histtype='step', normed=True, label=label)
 
+    # Do the same, but with a log scale:
+    non_zero_lengths = graph_utils.no_zeroes(lengths)
+    if len(non_zero_lengths) > 0:
+        plt.figure(2 + id_base)
+        min_lim = min(non_zero_lengths)
+        max_lim = max(non_zero_lengths)
+
+        bins = graph_utils.get_logspace(min_lim, max_lim)
+        plt.hist(non_zero_lengths, bins=bins, cumulative=True, histtype='step', normed=True, label=label)
+
+
     # Plot a CDF of the bandwidth achieved in each microburst.
     bandwidths = []
     for burst in bursts:
@@ -44,12 +55,24 @@ def microburst_analyze(bursts, identifier, pcap_file, label, id_base):
     for i in range(len(bandwidths)):
         bandwidths[i] = float(bandwidths[i])
 
-    plt.figure(2 + id_base)
+    plt.figure(3 + id_base)
     min_lim = min(bandwidths)
     max_lim = max(bandwidths)
     small_diff = (min_lim + max_lim) / 10000.0
     bins = np.append(np.linspace(min_lim, max_lim + small_diff, 1000), np.inf)
     plt.hist(bandwidths, bins=bins, cumulative=True, histtype='step', normed=True, label=label)
+
+    # And do the logarithmic version.
+    non_zero_bandwidths = graph_utils.no_zeroes(bandwidths)
+    if len(non_zero_bandwidths) > 0:
+        min_lim = min(non_zero_bandwidths)
+        max_lim = max(non_zero_bandwidths)
+        bins = graph_utils.get_logspace(min_lim, max_lim)
+        plt.figure(4 + id_base)
+        plt.hist(non_zero_bandwidths, bins=bins, cumulative=True, histtype='step', normed=True, label=label)
+    else:
+        print "There were non non-zero bandwidths!"
+
 
 
 def main(args):
@@ -74,6 +97,14 @@ def main(args):
     plt.clf()
     plt.figure(4)
     plt.clf()
+    plt.figure(5)
+    plt.clf()
+    plt.figure(6)
+    plt.clf()
+    plt.figure(7)
+    plt.clf()
+    plt.figure(8)
+    plt.clf()
 
     for pcap_file, label in args.input_files:
         for allowed_ipg, burst_size, label_suffix in args.thresholds:
@@ -89,63 +120,120 @@ def main(args):
 
             #  Handle the incoming information first.
             microburst_analyze(incoming_bursts, str(ipg_threshold) + "_incoming", pcap_file, label + ' ' + label_suffix, 0)
-            microburst_analyze(outgoing_bursts, str(ipg_threshold) + "_outgoing", pcap_file, label + ' ' + label_suffix, 2)
+            microburst_analyze(outgoing_bursts, str(ipg_threshold) + "_outgoing", pcap_file, label + ' ' + label_suffix, 4)
 
     if args.title:
         plt.figure(1)
         plt.title('Client Traffic (Burst Lengths): ')
         plt.figure(2)
-        plt.title('Client Traffic (Bandwidths): ')
+        plt.title('Client Traffic (Burst Lengths): ')
         plt.figure(3)
-        plt.title('Server Traffic (Burst Lengths): ')
+        plt.title('Client Traffic (Bandwidths): ')
         plt.figure(4)
+        plt.title('Client Traffic (Bandwidths): ')
+        plt.figure(5)
+        plt.title('Server Traffic (Burst Lengths): ')
+        plt.figure(6)
+        plt.title('Server Traffic (Burst Lengths): ')
+        plt.figure(7)
+        plt.title('Server Traffic (Bandwidths): ')
+        plt.figure(8)
         plt.title('Server Traffic (Bandwidths): ')
 
     plt.figure(1)
     plt.xlabel("Burst Length (packets)")
     plt.ylabel("CDF")
-    graph_utils.legend_bottom_right()
+    graph_utils.set_legend_below()
     graph_utils.set_yax_max_one()
     graph_utils.set_non_negative_axes()
     graph_utils.set_integer_ticks()
     graph_utils.set_ticks()
     filename = args.output_name + "_burst_length_cdf_incoming.eps"
     plt.savefig(filename)
-    print "Output in ", args.output_name + "_burst_length_cdf_incoming.eps"
+    print "Output in ", filename
 
     plt.figure(2)
+    plt.xlabel("Burst Length (packets)")
+    plt.ylabel("CDF")
+    graph_utils.set_legend_below()
+    graph_utils.set_log_x()
+    graph_utils.set_yax_max_one()
+    graph_utils.set_non_negative_axes()
+    graph_utils.set_integer_ticks()
+    graph_utils.set_ticks()
+    filename = args.output_name + "_burst_length_cdf_incoming_log.eps"
+    plt.savefig(filename)
+    print "Output in ", filename
+
+    plt.figure(3)
     plt.xlabel("Burst Bandwidth (Mbps)")
     plt.ylabel("CDF")
-    graph_utils.legend_bottom_right()
+    graph_utils.set_legend_below()
     graph_utils.set_yax_max_one()
     graph_utils.set_non_negative_axes()
     graph_utils.set_ticks()
-    filename = args.output_name + "_burst_bandwidth_cdf_incoming"
-    plt.savefig(filename + '.eps')
-    print "Output in ", args.output_name + "_burst_bandwidth_cdf_incoming.eps"
+    filename = args.output_name + "_burst_bandwidth_cdf_incoming.eps"
+    plt.savefig(filename)
+    print "Output in ", filename
 
-    plt.figure(3)
+    plt.figure(4)
+    plt.xlabel("Burst Bandwidth (Mbps)")
+    plt.ylabel("CDF")
+    graph_utils.set_legend_below()
+    graph_utils.set_log_x()
+    graph_utils.set_yax_max_one()
+    graph_utils.set_non_negative_axes()
+    graph_utils.set_ticks()
+    filename = args.output_name + "_burst_bandwidth_cdf_incoming_log.eps"
+    plt.savefig(filename)
+    print "Output in ", filename
+
+    plt.figure(5)
     plt.xlabel("Burst Length (packets)")
     plt.ylabel("CDF")
-    graph_utils.legend_bottom_right()
+    graph_utils.set_legend_below()
     graph_utils.set_yax_max_one()
     graph_utils.set_non_negative_axes()
     graph_utils.set_integer_ticks()
     graph_utils.set_ticks()
     filename = args.output_name + "_burst_length_bandwidth_outgoing.eps"
     plt.savefig(filename)
-    print "Output in ", args.output_name + "_burst_length_bandwidth_outgoing.eps"
+    print "Output in ", filename
 
-    plt.figure(4)
+    plt.figure(6)
+    plt.xlabel("Burst Length (packets)")
+    plt.ylabel("CDF")
+    graph_utils.set_legend_below()
+    graph_utils.set_log_x()
+    graph_utils.set_yax_max_one()
+    graph_utils.set_non_negative_axes()
+    graph_utils.set_ticks()
+    filename = args.output_name + "_burst_length_bandwidth_outgoing_log.eps"
+    plt.savefig(filename)
+    print "Output in ", filename
+
+    plt.figure(7)
     plt.xlabel("Burst Bandwidth (Mbps)")
     plt.ylabel("CDF")
-    graph_utils.legend_bottom_right()
+    graph_utils.set_legend_below()
     graph_utils.set_non_negative_axes()
     graph_utils.set_yax_max_one()
     graph_utils.set_ticks()
     filename = args.output_name + "_burst_bandwidth_cdf_outgoing.eps"
     plt.savefig(filename)
-    print "Output in ", args.output_name + "_burst_bandwidth_cdf_outgoing.eps"
+    print "Output in ", filename
+
+    plt.figure(8)
+    plt.xlabel("Burst Bandwidth (Mbps)")
+    plt.ylabel("CDF")
+    graph_utils.set_legend_below()
+    graph_utils.set_log_x()
+    graph_utils.set_non_negative_axes()
+    graph_utils.set_yax_max_one()
+    graph_utils.set_ticks()
+    filename = args.output_name + "_burst_bandwidth_cdf_outgoing_log.eps"
+    plt.savefig(filename)
+    print "Output in ", filename
 
 
 if __name__ == "__main__":

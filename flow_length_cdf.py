@@ -21,6 +21,8 @@ def main(args):
     args = parser.parse_args(args)
     plt.figure(1)
     plt.clf()
+    plt.figure(2)
+    plt.clf()
 
     for pcap_file, label in args.input_files:
         if pcap_file.endswith('.csv'):
@@ -35,9 +37,15 @@ def main(args):
             flow_lengths[i] = float(flow_lengths[i])
         min_lim = min(flow_lengths)
         max_lim = max(flow_lengths)
-        small_diff = (min_lim + max_lim) / 10000.0
+        small_diff = (min_lim + max_lim) / 1000.0
         bins = np.append(np.linspace(min_lim, max_lim + small_diff, 1000), np.inf)
+        plt.figure(1)
         plt.hist(flow_lengths, cumulative=True, bins=bins, histtype='step', normed=True, label=label)
+
+        logspace_bins = graph_utils.get_logspace(min_lim, max_lim)
+        print min_lim
+        plt.figure(2)
+        plt.hist(flow_lengths, cumulative=True, bins=logspace_bins, histtype='step', normed=True, label=label)
 
     if args.title:
         plt.title(args.title)
@@ -45,7 +53,7 @@ def main(args):
     plt.figure(1)
     plt.xlabel("Flow Completion Time (us)")
     plt.ylabel("CDF")
-    graph_utils.legend_bottom_right()
+    graph_utils.set_legend_below()
     graph_utils.set_yax_max_one()
     graph_utils.set_non_negative_axes()
     graph_utils.set_ticks()
@@ -53,6 +61,17 @@ def main(args):
     plt.savefig(filename)
     print "Done! File is in ", filename
 
+    plt.figure(2)
+    plt.xlabel("Flow Completion Time (us)")
+    plt.ylabel("CDF")
+    graph_utils.set_log_x()
+    graph_utils.set_legend_below()
+    graph_utils.set_yax_max_one()
+    graph_utils.set_non_negative_axes()
+    graph_utils.set_ticks()
+    filename = args.output_name + '_flow_lengths_log.eps'
+    plt.savefig(filename)
+    print "Done! File is in ", filename
 
 if __name__ == "__main__":
     main(sys.argv[1:])

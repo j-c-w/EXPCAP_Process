@@ -2,8 +2,37 @@ import matplotlib.pyplot as plt
 from matplotlib.ticker import MaxNLocator
 import sys
 import matplotlib
+import numpy as np
 from math import sqrt
 SPINE_COLOR = 'gray'
+
+
+def no_zeroes(data):
+    non_zero = 0
+    for element in data:
+        if element > 0:
+            non_zero += 1
+
+    new_data = [0] * (non_zero)
+    insert_index = 0
+    for element in data:
+        if element > 0:
+            new_data[insert_index] = element
+            insert_index += 1
+
+    return new_data
+
+
+def get_logspace(min_lim, max_lim):
+    small_diff_upper = max_lim / 10000.0
+    small_diff_lower = min_lim / 10000.0
+
+    logspace_bins = np.append(np.logspace(np.log10(min_lim + small_diff_lower), np.log10(max_lim + small_diff_upper), 1000), np.inf)
+
+    if min_lim == 0:
+        np.insert(logspace_bins, 0, 0.0)
+
+    return logspace_bins
 
 
 def set_integer_ticks():

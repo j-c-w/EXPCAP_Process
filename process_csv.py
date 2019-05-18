@@ -152,7 +152,6 @@ def extract_from_handle(f, count=None):
         if first:
             first = False
             continue
-        print "Looking at line ", line
         extracted_count += 1
         if count and extracted_count > count:
             return metadata

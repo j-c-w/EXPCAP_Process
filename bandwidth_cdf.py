@@ -27,6 +27,10 @@ def main(args):
     plt.clf()
     plt.figure(2)
     plt.clf()
+    plt.figure(3)
+    plt.clf()
+    plt.figure(4)
+    plt.clf()
 
     for pcap_file, label in args.input_files:
         for window_size, label_suffix in args.window_size:
@@ -49,39 +53,82 @@ def main(args):
             plt.figure(1)
             plt.hist(incoming_bandwidths, cumulative=True, bins=bins, histtype='step', normed=True, label=label + ' ' + label_suffix)
 
+            logspace_bins = np.append(np.logspace(np.log10(min_lim + small_diff), np.log10(max_lim + small_diff), 1000), np.inf)
+            plt.figure(2)
+            plt.hist(incoming_bandwidths, cumulative=True, bins=logspace_bins, histtype='step', normed=True, label=label + ' ' + label_suffix)
+
             for i in range(len(outgoing_bandwidths)):
                 outgoing_bandwidths[i] = float(outgoing_bandwidths[i])
             min_lim = min(outgoing_bandwidths)
             max_lim = max(outgoing_bandwidths)
             small_diff = (min_lim + max_lim) / 10000.0
             bins = np.append(np.linspace(min_lim, max_lim + small_diff, 1000), np.inf)
-            plt.figure(2)
+            plt.figure(3)
             plt.hist(outgoing_bandwidths, cumulative=True, bins=bins, histtype='step', normed=True, label=label + ' ' + label_suffix)
+
+            logspace_bins = np.append(np.logspace(np.log10(min_lim + small_diff), np.log10(max_lim + small_diff), 1000), np.inf)
+            print "Sum of mins"
+            print min_lim + small_diff
+            print np.log10(min_lim + small_diff)
+            print "maxs"
+            print max_lim + small_diff
+            print np.log10(max_lim + small_diff)
+            plt.figure(4)
+            plt.hist(outgoing_bandwidths, cumulative=True, bins=logspace_bins, histtype='step', normed=True, label=label + ' ' + label_suffix)
 
     if args.title:
         plt.figure(1)
         plt.title('Client Traffic: ' + args.title)
         plt.figure(2)
+        plt.title('Client Traffic: ' + args.title)
+        plt.figure(3)
+        plt.title('Server Traffic: ' + args.title)
+        plt.figure(4)
         plt.title('Server Traffic: ' + args.title)
 
     plt.figure(1)
     plt.xlabel("Bandwidth (Mbps)")
     plt.ylabel("CDF")
-    graph_utils.legend_bottom_right()
+    graph_utils.set_legend_below()
     graph_utils.set_yax_max_one()
     graph_utils.set_non_negative_axes()
     graph_utils.set_ticks()
     filename = args.output_name + '_incoming_bandwidth_cdf_window.eps'
     plt.savefig(filename)
     print "Done! File is in ", filename
+
     plt.figure(2)
+    plt.ylabel("CDF")
+    plt.xlabel("Bandwidth (Mbps)")
+    graph_utils.set_log_x()
+    graph_utils.set_legend_below()
+    graph_utils.set_yax_max_one()
+    graph_utils.set_non_negative_axes()
+    graph_utils.set_ticks()
+    filename = args.output_name + '_incoming_bandwidth_cdf_window_log.eps'
+    plt.savefig(filename)
+    print "Done! File is in ", filename
+
+    plt.figure(3)
     plt.xlabel("Bandwidth (Mbps)")
     plt.ylabel("CDF")
-    graph_utils.legend_bottom_right()
+    graph_utils.set_legend_below()
     graph_utils.set_yax_max_one()
     graph_utils.set_non_negative_axes()
     graph_utils.set_ticks()
     filename = args.output_name + '_outgoing_bandwidth_cdf_window.eps'
+    plt.savefig(filename)
+    print "Done! File is in ", filename
+
+    plt.figure(4)
+    plt.xlabel("Bandwidth (Mbps)")
+    plt.ylabel("CDF")
+    graph_utils.set_legend_below()
+    graph_utils.set_log_x()
+    graph_utils.set_yax_max_one()
+    graph_utils.set_non_negative_axes()
+    graph_utils.set_ticks()
+    filename = args.output_name + '_outgoing_bandwidth_cdf_window_log.eps'
     plt.savefig(filename)
     print "Done! File is in ", filename
 

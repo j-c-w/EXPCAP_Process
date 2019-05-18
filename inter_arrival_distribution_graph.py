@@ -26,6 +26,10 @@ def main(args):
     plt.clf()
     plt.figure(2)
     plt.clf()
+    plt.figure(3)
+    plt.clf()
+    plt.figure(4)
+    plt.clf()
 
     for pcap_file, label in args.input_files:
         if pcap_file.endswith('.csv'):
@@ -57,6 +61,15 @@ def main(args):
         plt.hist(timestamp_deltas_outgoing, bins=bins, cumulative=True,
                  histtype='step', normed=True, label=label)
 
+        timestamp_deltas_outgoing_no_zero = graph_utils.no_zeroes(timestamp_deltas_outgoing)
+        if len(timestamp_deltas_outgoing_no_zero) > 0:
+            min_lim = min(timestamp_deltas_outgoing_no_zero)
+            max_lim = max(timestamp_deltas_outgoing_no_zero)
+            logspace_bins = graph_utils.get_logspace(min_lim, max_lim)
+            plt.figure(2)
+            plt.hist(timestamp_deltas_outgoing_no_zero, bins=logspace_bins, cumulative=True,
+                     histtype='step', normed=True, label=label)
+
         # Do the incoming.
         range = [min(timestamp_deltas_incoming),
                  max(timestamp_deltas_incoming)]
@@ -71,21 +84,37 @@ def main(args):
         small_diff = (min_lim + max_lim) / 10000.0
         bins = np.append(np.linspace(min_lim, max_lim + small_diff, 1000), np.inf)
 
-        plt.figure(2)
+        plt.figure(3)
         plt.hist(timestamp_deltas_incoming, bins=bins,
                  cumulative=True, histtype='step', normed=True,
                  label=label)
+
+        timestamp_deltas_incoming_no_zero = graph_utils.no_zeroes(timestamp_deltas_incoming)
+        if len(timestamp_deltas_incoming_no_zero) > 0:
+            min_lim = min(timestamp_deltas_incoming_no_zero)
+            max_lim = max(timestamp_deltas_incoming_no_zero)
+
+            plt.figure(4)
+            plt.hist(timestamp_deltas_incoming, bins=logspace_bins,
+                     cumulative=True, histtype='step', normed=True,
+                     label=label)
+        else:
+            print "Error: found no incoming timestamp deltas with nonzero inter-arrival times"
 
     if args.title:
         plt.figure(1)
         plt.title("Server Traffic: " + args.title)
         plt.figure(2)
+        plt.title("Server Traffic: " + args.title)
+        plt.figure(3)
+        plt.title("Client Traffic: " + args.title)
+        plt.figure(4)
         plt.title("Client Traffic: " + args.title)
 
     plt.figure(1)
     plt.ylabel("CDF")
     plt.xlabel("Inter-arrival time (ns)")
-    graph_utils.legend_bottom_right()
+    graph_utils.set_legend_below()
     graph_utils.set_yax_max_one()
     graph_utils.set_non_negative_axes()
     graph_utils.set_ticks()
@@ -93,15 +122,40 @@ def main(args):
     plt.savefig(filename)
     print "Done! File is in ", args.output_name + '_outgoing_interarrival'
 
-    # Do the incoming packets.
     plt.figure(2)
     plt.ylabel("CDF")
-    graph_utils.legend_bottom_right()
+    plt.xlabel("Inter-arrival time (ns)")
+    graph_utils.set_legend_below()
+    graph_utils.set_log_x()
+    graph_utils.set_yax_max_one()
+    graph_utils.set_non_negative_axes()
+    graph_utils.set_ticks()
+    filename = args.output_name + '_outgoing_interarrival_log.eps'
+    plt.savefig(filename)
+    print "Done! File is in ", args.output_name + '_outgoing_interarrival'
+
+    # Do the incoming packets.
+    plt.figure(3)
+    plt.ylabel("CDF")
+    graph_utils.set_legend_below()
     graph_utils.set_yax_max_one()
     graph_utils.set_non_negative_axes()
     graph_utils.set_ticks()
     plt.xlabel("Inter-arrival time (ns)")
     filename = args.output_name + '_incoming_interarrival.eps'
+    plt.savefig(filename)
+    print "Done! File is in ", args.output_name + '_incoming_interarrival'
+
+    # Do the incoming packets.
+    plt.figure(4)
+    plt.ylabel("CDF")
+    graph_utils.set_legend_below()
+    graph_utils.set_log_x()
+    graph_utils.set_yax_max_one()
+    graph_utils.set_non_negative_axes()
+    graph_utils.set_ticks()
+    plt.xlabel("Inter-arrival time (ns)")
+    filename = args.output_name + '_incoming_interarrival_log.eps'
     plt.savefig(filename)
     print "Done! File is in ", args.output_name + '_incoming_interarrival'
 

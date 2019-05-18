@@ -642,8 +642,8 @@ def extract_utilizations(filename, window_size, count=None, to_ip=None, from_ip=
             print "Window size is ", total_window_time
             print "Utilization is ", utilization
             print "Number of packets in the window is ", len(packets[i])
-            if utilization > 1:
-                print "Greater than one usage: see last ", len(packets[i]), "utilizations"
+        if utilization > 1:
+            print "Greater than one usage: see last ", len(packets[i]), "utilizations"
 
     save_utilizations_in_cache(cache_name, windows, usages)
     return (windows, usages)
@@ -791,7 +791,7 @@ def extract_flow_lengths(filename):
                 if debug:
                     deleted_flows[identifier] = True
                     print "Removing entry for ", identifier
-            else:
+            elif debug:
                 print "Warning! Found a FIN/RST for a flow we didn't see a SYN for!"
                 if debug:
                     if identifier in deleted_flows:
@@ -836,7 +836,8 @@ def extract_flow_sizes(filename):
         if packet.is_ip() and packet.is_tcp() and packet.is_tcp_syn():
             # print "Starting flow for ", packet.packet_data
             identifier = tcp_flow_identifier(packet)
-            print "Flow ID is ", identifier
+            if PROCESS_CSV_DEBUG:
+                print "Flow ID is ", identifier
             # print "Start time is", packet.wire_start_time()
             flows[identifier] = packet.tcp_data_length
             flow_count += 1
@@ -848,13 +849,13 @@ def extract_flow_sizes(filename):
                 # everything twice.  We'll only delete it on
                 # the first FIN, but that's OK.
                 del flows[identifier]
-            else:
+            elif PROCESS_CSV_DEBUG:
                 print "Warning! Found a FIN/RST for a flow we didn't see a SYN for!"
         elif packet.is_tcp():
             identifier = tcp_flow_identifier(packet)
             if identifier in flows:
                 flows[identifier] += packet.tcp_data_length
-            else:
+            elif PROCESS_CSV_DEBUG:
                 print "Saw a TCP packet for a flow we didn't SYN to!"
 
     if len(flows) > 0:

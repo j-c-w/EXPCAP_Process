@@ -11,6 +11,22 @@ def set_integer_ticks():
     ax.xaxis.set_major_locator(MaxNLocator(integer=True))
 
 
+def set_log_x():
+    ax = plt.gca()
+    ax.set_xscale('log')
+
+
+def set_log_y():
+    ax = plt.gca()
+    ax.set_yscale('log')
+
+
+def set_legend_below():
+    ax = plt.gca()
+    ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.20),
+              fancybox=True, shadow=True, ncol=5)
+
+
 def set_ticks():
     (xmin, xmax) = plt.xlim()
     (ymin, ymax) = plt.ylim()

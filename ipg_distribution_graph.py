@@ -28,6 +28,10 @@ def main(args):
     plt.clf()
     plt.figure(2)
     plt.clf()
+    plt.figure(3)
+    plt.clf()
+    plt.figure(4)
+    plt.clf()
 
     pcap_files = args.input_files
     output_label = args.output_name
@@ -76,6 +80,19 @@ def main(args):
         plt.hist(incoming_ipg_gaps, bins=bins, cumulative=True,
                  histtype='step', normed=True, label=label)
 
+        # Now plot a log space version, with all times included.
+        incoming_ipg_gas_no_zeroes = graph_utils.no_zeroes(incoming_ipg_gaps)
+        if len(incoming_ipg_gas_no_zeroes) > 0:
+            lim_min = min(incoming_ipg_gas_no_zeroes)
+            lim_max = max(incoming_ipg_gas_no_zeroes)
+
+            bins = graph_utils.get_logspace(lim_min, lim_max)
+            plt.figure(2)
+            plt.hist(incoming_ipg_gas_no_zeroes, bins=bins, cumulative=True,
+                     histtype='step', normed=True, label=label)
+        else:
+            print "Error:: found only zero times on the incoming IPG gaps"
+
         # Now do the outgoing.
         # Remove anything greater than the 99th percentile to stop
         # if affecting the bins.
@@ -97,40 +114,83 @@ def main(args):
         bins = np.linspace(min_lim, max_lim + small_diff, 1000)
         bins = np.append(bins, np.inf)
 
-        plt.figure(2)
+        plt.figure(3)
         plt.hist(outgoing_ipg_gaps, bins=bins, cumulative=True,
                  histtype='step', normed=True, label=label)
+
+        # Now plot the logspace version.
+        outgoing_ipg_gaps_no_zeroes = graph_utils.no_zeroes(outgoing_ipg_gaps)
+        if len(outgoing_ipg_gaps_no_zeroes) > 0:
+            min_lim = min(outgoing_ipg_gaps_no_zeroes)
+            max_lim = max(outgoing_ipg_gaps_no_zeroes)
+
+            bins = graph_utils.get_logspace(min_lim, max_lim)
+            plt.figure(4)
+            plt.hist(outgoing_ipg_gaps_no_zeroes, bins=bins,
+                     cumulative=True,
+                     histtype='step', normed=True, label=label)
+        else:
+            print "Error: No non-zero IPGs found in outgoing data"
 
     if args.title:
         plt.figure(1)
         plt.title('Client Traffic: ' + args.title)
         plt.figure(2)
+        plt.title('Client Traffic: ' + args.title)
+        plt.figure(3)
+        plt.title('Server Traffic: ' + args.title)
+        plt.figure(4)
         plt.title('Server Traffic: ' + args.title)
 
     plt.figure(1)
     plt.xlim([min(outgoing_ipg_gaps), nintyninth_percentile])
     plt.ylabel("CDF")
     plt.xlabel("IPG (ns)")
-    graph_utils.legend_bottom_right()
+    graph_utils.set_legend_below()
     graph_utils.set_non_negative_axes()
     graph_utils.set_yax_max_one()
     graph_utils.set_ticks()
     filename = output_label + '_ipg_gaps_clients.eps'
     plt.savefig(filename)
-    print "Done! File is in ", output_label + '_ipg_gaps_clients.eps'
+    print "Done! File is in ", filename
 
     plt.figure(2)
+    plt.ylabel("CDF")
+    plt.xlabel("IPG (ns)")
+    graph_utils.set_legend_below()
+    graph_utils.set_log_x()
+    graph_utils.set_non_negative_axes()
+    graph_utils.set_yax_max_one()
+    graph_utils.set_ticks()
+    filename = output_label + '_ipg_gaps_clients_log.eps'
+    plt.savefig(filename)
+    print "Done! File is in ", filename
+
+    plt.figure(3)
     plt.xlim([min(outgoing_ipg_gaps), nintyninth_percentile])
     plt.ylabel("CDF")
     plt.xlabel("IPG (ns)")
-    graph_utils.legend_bottom_right()
+    graph_utils.set_legend_below()
     graph_utils.set_non_negative_axes()
     graph_utils.set_yax_max_one()
     graph_utils.set_ticks()
     filename = output_label + '_ipg_gaps_server.eps'
     plt.savefig(filename)
 
-    print "Done! File is in ", output_label + '_ipg_gaps_server.eps'
+    print "Done! File is in ", filename
+
+    plt.figure(4)
+    plt.ylabel("CDF")
+    plt.xlabel("IPG (ns)")
+    graph_utils.set_legend_below()
+    graph_utils.set_log_x()
+    graph_utils.set_non_negative_axes()
+    graph_utils.set_yax_max_one()
+    graph_utils.set_ticks()
+    filename = output_label + '_ipg_gaps_server_log.eps'
+    plt.savefig(filename)
+
+    print "Done! File is in ", filename
 
 
 if __name__ == "__main__":

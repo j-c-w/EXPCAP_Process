@@ -123,7 +123,6 @@ def main(args):
     plt.figure(1)
     plt.ylabel("CDF")
     plt.xlabel("Sizes (B)")
-    graph_utils.set_log_x()
     graph_utils.set_legend_below()
     graph_utils.set_yax_max_one()
     graph_utils.set_non_negative_axes()

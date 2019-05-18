@@ -695,7 +695,9 @@ def extract_sizes_by_window(filename, window_size, count=None, to_ip=None,
                         _, window_end = windows[base_index + combination_factor - 1]
                         this_window_sizes = []
                         for index in range(0, combination_factor):
-                            sub_window_sizes = [int(x) for x in sizes[base_index + index].split('_')]
+                            if sizes[base_index + index] != '':
+                                split_sizes = sizes[base_index + index].split('_')
+                                sub_window_sizes = [int(x) for x in split_sizes]
                             this_window_sizes += sub_window_sizes
                         bigger_sizes.append(this_window_sizes)
                         bigger_windows.append((window_start, window_end))

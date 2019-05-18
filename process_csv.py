@@ -12,7 +12,7 @@ import threading
 # This is a little hack to make loading repeatedly from the same file faster.
 last_loaded = None
 last_loaded_from = None
-PROCESS_CSV_DEBUG = True
+PROCESS_CSV_DEBUG = False
 
 
 def ip_to_hex(ip):

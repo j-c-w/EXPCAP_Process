@@ -2,7 +2,6 @@ import argparse
 import threading
 import shlex
 import bandwidth_cdf
-import bandwidth_distribution
 import bandwidth_through_time
 import flow_length_cdf
 import flow_size_cdf
@@ -24,8 +23,6 @@ def draw_graph(name, commands):
     try:
         if name == "bandwidth_cdf.py":
             bandwidth_cdf.main(commands)
-        elif name == "bandwidth_distribution.py":
-            bandwidth_distribution.main(commands)
         elif name == "bandwidth_through_time.py":
             bandwidth_through_time.main(commands)
         elif name == "flow_length_cdf.py":

@@ -42,12 +42,21 @@ def main(args):
         plt.figure(1)
         plt.hist(flow_lengths, cumulative=True, bins=bins, histtype='step', normed=True, label=label)
 
-        logspace_bins = graph_utils.get_logspace(min_lim, max_lim)
-        print min_lim
-        plt.figure(2)
-        plt.hist(flow_lengths, cumulative=True, bins=logspace_bins, histtype='step', normed=True, label=label)
+        no_zero_values = graph_utils.no_zeroes(flow_lengths)
+        if len(no_zero_values) > 0:
+            min_lim = min(no_zero_values)
+            max_lim = max(no_zero_values)
+            logspace_bins = graph_utils.get_logspace(min_lim, max_lim)
+
+            plt.figure(2)
+            plt.hist(no_zero_values, cumulative=True, bins=logspace_bins, histtype='step', normed=True, label=label)
+        else:
+            print "Hard Warning!: Found no non-zero flow sizes"
 
     if args.title:
+        plt.figure(1)
+        plt.title(args.title)
+        plt.figure(2)
         plt.title(args.title)
 
     plt.figure(1)

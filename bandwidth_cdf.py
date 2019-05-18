@@ -53,9 +53,15 @@ def main(args):
             plt.figure(1)
             plt.hist(incoming_bandwidths, cumulative=True, bins=bins, histtype='step', normed=True, label=label + ' ' + label_suffix)
 
-            logspace_bins = np.append(np.logspace(np.log10(min_lim + small_diff), np.log10(max_lim + small_diff), 1000), np.inf)
-            plt.figure(2)
-            plt.hist(incoming_bandwidths, cumulative=True, bins=logspace_bins, histtype='step', normed=True, label=label + ' ' + label_suffix)
+            no_zero_incoming_bandwidths = graph_utils.no_zeroes(incoming_bandwidths)
+            if len(no_zero_incoming_bandwidths) > 0:
+                min_lim = min(no_zero_incoming_bandwidths)
+                max_lim = max(no_zero_incoming_bandwidths)
+                logspace_bins = graph_utils.get_logspace(min_lim, max_lim)
+                plt.figure(2)
+                plt.hist(incoming_bandwidths, cumulative=True, bins=logspace_bins, histtype='step', normed=True, label=label + ' ' + label_suffix)
+            else:
+                print "Error: No non-zero bandwidths found"
 
             for i in range(len(outgoing_bandwidths)):
                 outgoing_bandwidths[i] = float(outgoing_bandwidths[i])
@@ -66,15 +72,15 @@ def main(args):
             plt.figure(3)
             plt.hist(outgoing_bandwidths, cumulative=True, bins=bins, histtype='step', normed=True, label=label + ' ' + label_suffix)
 
-            logspace_bins = np.append(np.logspace(np.log10(min_lim + small_diff), np.log10(max_lim + small_diff), 1000), np.inf)
-            print "Sum of mins"
-            print min_lim + small_diff
-            print np.log10(min_lim + small_diff)
-            print "maxs"
-            print max_lim + small_diff
-            print np.log10(max_lim + small_diff)
-            plt.figure(4)
-            plt.hist(outgoing_bandwidths, cumulative=True, bins=logspace_bins, histtype='step', normed=True, label=label + ' ' + label_suffix)
+            no_zero_outgoing_bandwidths = graph_utils.no_zeroes(outgoing_bandwidths)
+            if len(no_zero_outgoing_bandwidths) > 0:
+                min_lim = min(no_zero_outgoing_bandwidths)
+                max_lim = min(no_zero_outgoing_bandwidths)
+                logspace_bins = graph_utils.get_logspace(min_lim, max_lim)
+                plt.figure(4)
+                plt.hist(outgoing_bandwidths, cumulative=True, bins=logspace_bins, histtype='step', normed=True, label=label + ' ' + label_suffix)
+            else:
+                print "Error: No non-zero bandwidths found!"
 
     if args.title:
         plt.figure(1)

@@ -20,6 +20,8 @@ def no_zeroes(data):
             new_data[insert_index] = element
             insert_index += 1
 
+    print "Removed ", len(data) - non_zero, "entries that were all zero"
+    print "Before this, there were ", len(data), "entries"
     return new_data
 
 
@@ -50,9 +52,9 @@ def set_log_y():
     ax.set_yscale('log')
 
 
-def set_legend_below():
+def set_legend_below(extra=0.0):
     ax = plt.gca()
-    ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.20),
+    ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.20 - extra),
               fancybox=True, shadow=True, ncol=5)
 
 

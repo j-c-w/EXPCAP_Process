@@ -22,12 +22,19 @@ def main(args):
 
     args = parser.parse_args(args)
 
-    outgoing_graph = plt.figure(1)
+    plt.figure(1)
     plt.clf()
-    incoming_graph = plt.figure(2)
+    plt.figure(2)
     plt.clf()
-    both_graph = plt.figure(3)
+    plt.figure(3)
     plt.clf()
+    plt.figure(4)
+    plt.clf()
+    plt.figure(5)
+    plt.clf()
+    plt.figure(6)
+    plt.clf()
+
     for (pcap_file, label) in args.input_files:
         if pcap_file.endswith('.csv'):
             outgoing_packet_sizes = process_csv.extract_sizes(pcap_file, from_ip=args.server_ip)
@@ -49,6 +56,13 @@ def main(args):
         plt.hist(outgoing_packet_sizes, bins=bins, cumulative=True,
                  histtype='step', normed=True, label=label)
 
+        # Plot the log version:
+        log_bins = graph_utils.get_logspace(min_lim, max_lim)
+        plt.figure(2)
+        plt.hist(outgoing_packet_sizes, bins=log_bins, cumulative=True,
+                 histtype='step', normed=True, label=label)
+
+
         # Plot the incoming packet sizes.
         range = [min(incoming_packet_sizes), max(incoming_packet_sizes)]
         print "Into the server, "
@@ -60,8 +74,14 @@ def main(args):
         max_lim = max(incoming_packet_sizes)
         small_diff = (min_lim + max_lim) / 10000.0
         bins = np.append(np.linspace(min_lim, max_lim + small_diff, 1000), [np.inf])
-        plt.figure(2)
+        plt.figure(3)
         plt.hist(incoming_packet_sizes, bins=bins, cumulative=True,
+                 histtype='step', normed=True, label=label)
+
+        # Plot the log versions.
+        log_bins = graph_utils.get_logspace(min_lim, max_lim)
+        plt.figure(4)
+        plt.hist(incoming_packet_sizes, bins=log_bins, cumulative=True,
                  histtype='step', normed=True, label=label)
 
         # Plot both packet sizes.
@@ -76,53 +96,104 @@ def main(args):
         small_diff = (min_lim + max_lim) / 10000.0
         bins = np.append(np.linspace(min_lim, max_lim + small_diff, 1000), [np.inf])
 
-        plt.figure(3)
+        plt.figure(5)
         plt.hist(both_packet_sizes, bins=bins, cumulative=True,
+                 histtype='step', normed=True, label=label)
+
+        # Plot the log versions.
+        log_bins = graph_utils.get_logspace(min_lim, max_lim)
+        plt.figure(6)
+        plt.hist(both_packet_sizes, bins=log_bins, cumulative=True,
                  histtype='step', normed=True, label=label)
 
     if args.title:
         plt.figure(1)
         plt.title("From Server: " + args.title)
         plt.figure(2)
-        plt.title("From Clients: " + args.title)
+        plt.title("From Server: " + args.title)
         plt.figure(3)
+        plt.title("From Clients: " + args.title)
+        plt.figure(4)
+        plt.title("From Clients: " + args.title)
+        plt.figure(5)
+        plt.title(args.title)
+        plt.figure(6)
         plt.title(args.title)
 
     plt.figure(1)
     plt.ylabel("CDF")
     plt.xlabel("Sizes (B)")
-    graph_utils.legend_bottom_right()
+    graph_utils.set_log_x()
+    graph_utils.set_legend_below()
     graph_utils.set_yax_max_one()
     graph_utils.set_non_negative_axes()
     graph_utils.set_ticks()
     filename = args.output_name + '_outgoing_sizes.eps'
     plt.savefig(filename)
-    print "Done! File is in ", args.output_name + '_outgoing_sizes.eps'
+    print "Done! File is in ", filename
 
     plt.figure(2)
     plt.ylabel("CDF")
     plt.xlabel("Sizes (B)")
-    graph_utils.legend_bottom_right()
+    graph_utils.set_log_x()
+    graph_utils.set_legend_below()
+    graph_utils.set_yax_max_one()
+    graph_utils.set_non_negative_axes()
+    graph_utils.set_ticks()
+    filename = args.output_name + '_outgoing_sizes_log.eps'
+    plt.savefig(filename)
+    print "Done! File is in ", filename
+
+    plt.figure(3)
+    plt.ylabel("CDF")
+    plt.xlabel("Sizes (B)")
+    graph_utils.set_legend_below()
     graph_utils.set_non_negative_axes()
     graph_utils.set_yax_max_one()
     graph_utils.set_ticks()
     graph_utils.set_integer_ticks()
     filename = args.output_name + '_incoming_sizes.eps'
     plt.savefig(filename)
-    print "Done! File is in ", args.output_name + '_incoming_sizes.eps'
+    print "Done! File is in ", filename
 
-    # Plot the packet sizes for both.
-    plt.figure(3)
+    plt.figure(4)
     plt.ylabel("CDF")
     plt.xlabel("Sizes (B)")
-    graph_utils.legend_bottom_right()
+    graph_utils.set_log_x()
+    graph_utils.set_legend_below()
+    graph_utils.set_non_negative_axes()
+    graph_utils.set_yax_max_one()
+    graph_utils.set_ticks()
+    filename = args.output_name + '_incoming_sizes_log.eps'
+    plt.savefig(filename)
+    print "Done! File is in ", filename
+
+    # Plot the packet sizes for both.
+    plt.figure(5)
+    plt.ylabel("CDF")
+    plt.xlabel("Sizes (B)")
+    graph_utils.set_legend_below()
     graph_utils.set_yax_max_one()
     graph_utils.set_non_negative_axes()
     graph_utils.set_ticks()
     graph_utils.set_integer_ticks()
     filename = args.output_name + '_all_sizes.eps'
     plt.savefig(filename)
-    print "Done! File is in ", args.output_name + '_all_sizes.eps'
+    print "Done! File is in ", filename
+
+    # Plot the packet sizes for both.
+    plt.figure(6)
+    plt.ylabel("CDF")
+    plt.xlabel("Sizes (B)")
+    graph_utils.set_legend_below()
+    graph_utils.set_log_x()
+    graph_utils.set_yax_max_one()
+    graph_utils.set_non_negative_axes()
+    graph_utils.set_ticks()
+    graph_utils.set_integer_ticks()
+    filename = args.output_name + '_all_sizes_log.eps'
+    plt.savefig(filename)
+    print "Done! File is in ", filename
 
 
 if __name__ == "__main__":

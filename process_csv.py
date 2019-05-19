@@ -295,13 +295,9 @@ def find_bursts(filename, count=None, ipg_threshold=20000, packet_threshold=20, 
 
     total_bursts = sum([len(burst) for burst in bursts])
     print "We have a total of ", total_bursts, "packets in bursts"
-    # Tests show we're storing about 500 bytes of info per
-    # packet.
-    # Arbitrarily, let's try to keep the pickle size below
-    # 4 GB.
-    # So, that means we need less than 10 million total packets
+    # Lets store less than 50 million total packets
     # to be able to save this to the disk.
-    if total_bursts < 10000000:
+    if total_bursts < 50000000:
         with open(cache_name, 'w') as f:
             with flock.Flock(f, flock.LOCK_EX) as lock:
                 expcap_metadata.double_list_save_expcaps_to(f, bursts)

@@ -21,6 +21,10 @@ def main(args):
             help="Number of packets to process from a pcap file")
 
     args = parser.parse_args(args)
+    plt.figure(1)
+    plt.clf()
+    plt.figure(2)
+    plt.clf()
 
     for (pcap_file, label) in args.input_files:
         for (window_size, label_suffix) in args.window_size:
@@ -37,13 +41,13 @@ def main(args):
             # Recenter the xvalues around zero.
             zero_value = outgoing_x_values[0][0]
             for i in range(len(outgoing_x_values)):
-                outgoing_x_values[i] = outgoing_x_values[i][0] - zero_value
+                outgoing_x_values[i] = float(outgoing_x_values[i][0] - zero_value)
 
             #  Handle the incoming information next.
             # Recenter the xvalues around zero.
             zero_value = incoming_x_values[0][0]
             for i in range(len(incoming_x_values)):
-                incoming_x_values[i] = incoming_x_values[i][0] - zero_value
+                incoming_x_values[i] = float(incoming_x_values[i][0] - zero_value)
 
             if len(incoming_x_values) < 3000000:
                 plt.figure(2)
@@ -68,7 +72,7 @@ def main(args):
     plt.ylabel("Bandwidth (Mbps)")
     graph_utils.set_ticks()
     graph_utils.set_non_negative_axes()
-    plt.legend()
+    plt.set_legend_below()
     filename = args.output_name + '_incoming_bandwidth_windowed.eps'
     plt.savefig(filename, format='eps')
     print "Done! File is in ", filename
@@ -78,7 +82,7 @@ def main(args):
     plt.ylabel("Bandwidth (Mbps)")
     graph_utils.set_non_negative_axes()
     graph_utils.set_ticks()
-    plt.legend()
+    plt.set_legend_below()
     filename = args.output_name + '_outgoing_bandwidth_windowed.eps'
 
     plt.savefig(filename, format='eps')

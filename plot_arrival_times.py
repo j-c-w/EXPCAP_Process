@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import process_csv
 import process_txt
+import graph_utils
 import process_pcap
 import sys
 

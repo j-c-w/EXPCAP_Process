@@ -594,7 +594,7 @@ def extract_utilizations(filename, window_size, count=None, to_ip=None, from_ip=
                     windows = windows_list_from_string(lines[0])
                     utilizations = [Decimal(x) for x in lines[1].split(',')]
 
-                    for base_index in range(0, len(windows) / combination_factor, combination_factor):
+                    for base_index in range(0, len(windows) - combination_factor, combination_factor):
                         window_start, _ = windows[base_index]
                         _, window_end = windows[base_index + combination_factor - 1]
 

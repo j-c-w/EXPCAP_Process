@@ -35,6 +35,17 @@ def get_logspace(min_lim, max_lim):
     return logspace_bins
 
 
+def get_linspace(min_lim, max_lim):
+    small_diff_lower = - (abs(min_lim) / 10000.0)
+    small_diff_upper = max_lim / 10000.0
+
+    linspace_bins = \
+        np.append(np.linspace((min_lim + small_diff_lower),
+                  (max_lim + small_diff_upper), 1000), np.inf)
+
+    return linspace_bins
+
+
 def set_integer_ticks():
     ax = plt.gca()
     ax.xaxis.set_major_locator(MaxNLocator(integer=True))
@@ -53,7 +64,7 @@ def set_log_y():
 def set_legend_below(extra=0.0):
     ax = plt.gca()
     ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.20 - extra),
-              fancybox=True, shadow=True, ncol=4)
+              fancybox=True, shadow=True, ncol=2)
 
 
 def set_ticks():
@@ -142,7 +153,8 @@ def latexify(fig_width=None, fig_height=None, columns=2):
               # 'text.usetex': True,
               'figure.figsize': [fig_width,fig_height],
               'font.family': 'serif',
-              'figure.autolayout': True
+              'figure.autolayout': True,
+              'patch.linewidth': 1.3
     }
 
     matplotlib.rcParams.update(params)

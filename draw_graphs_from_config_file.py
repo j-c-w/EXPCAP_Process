@@ -12,13 +12,18 @@ import packet_size_distribution_graph
 import packet_size_distribution_through_time
 
 entry_semaphore = None
+entered = 0
 
 
 def draw_graph(name, commands):
     global entry_semaphore
+    global entered
     entry_semaphore.acquire()
+    entered += 1
     print "A thread has acquired the global semaphore and is starting work."
     print "(Using ", name, ")"
+    print entered
+    print "Entered is ", entered
 
     try:
         if name == "bandwidth_cdf.py":
@@ -42,6 +47,8 @@ def draw_graph(name, commands):
         else:
             print "Error: Unkown filename", name
     finally:
+        print "Entered is ", entered
+        entered -= 1
         entry_semaphore.release()
 
 

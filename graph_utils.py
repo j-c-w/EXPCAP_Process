@@ -61,10 +61,10 @@ def set_log_y():
     ax.set_yscale('log')
 
 
-def set_legend_below(extra=0.0):
+def set_legend_below(extra=0.0, ncol=2):
     ax = plt.gca()
     ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.20 - extra),
-              fancybox=True, shadow=True, ncol=2)
+              fancybox=True, shadow=True, ncol=ncol)
 
 
 def set_ticks():
@@ -111,7 +111,7 @@ def legend_upper_left():
     plt.legend(loc='upper left')
 
 
-def latexify(fig_width=None, fig_height=None, columns=2):
+def latexify(fig_width=None, fig_height=None, columns=2, space_below_graph=0.0):
     """Set up matplotlib's RC params for LaTeX plotting.
     Call this before plotting a figure.
 
@@ -136,6 +136,9 @@ def latexify(fig_width=None, fig_height=None, columns=2):
         golden_mean = (sqrt(5)-1.0)/2.0    # Aesthetic ratio
         fig_height = fig_width*golden_mean # height in inches
 
+    # Add some height for the labels.
+    fig_height += space_below_graph
+
     MAX_HEIGHT_INCHES = 8.0
     if fig_height > MAX_HEIGHT_INCHES:
         print("WARNING: fig_height too large:" + fig_height + 
@@ -144,12 +147,12 @@ def latexify(fig_width=None, fig_height=None, columns=2):
 
     params = {# 'backend': 'ps',
               'text.latex.preamble': ['\\usepackage{gensymb}'],
-              'axes.labelsize': 10, # fontsize for x and y labels (was 10)
-              'axes.titlesize': 10,
+              'axes.labelsize': 12, # fontsize for x and y labels (was 10)
+              'axes.titlesize': 12,
               # 'text.fontsize': 8, # was 10
-              'legend.fontsize': 10, # was 10
-              'xtick.labelsize': 10,
-              'ytick.labelsize': 10,
+              'legend.fontsize': 12, # was 10
+              'xtick.labelsize': 12,
+              'ytick.labelsize': 12,
               # 'text.usetex': True,
               'figure.figsize': [fig_width,fig_height],
               'font.family': 'serif',

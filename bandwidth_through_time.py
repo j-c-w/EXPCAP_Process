@@ -67,12 +67,15 @@ def main(args):
         plt.figure(2)
         plt.title('Client Traffic: ' + args.title)
 
+    label_count = len(args.input_files) * len(args.window_size)
+    graph_utils.latexify(bottom_label_rows=label_count / 2)
+
     plt.figure(2)
     plt.xlabel("Time (s)")
     plt.ylabel("Bandwidth (Mbps)")
     graph_utils.set_ticks()
     graph_utils.set_non_negative_axes()
-    plt.set_legend_below()
+    graph_utils.set_legend_below()
     filename = args.output_name + '_incoming_bandwidth_windowed.eps'
     plt.savefig(filename, format='eps')
     print "Done! File is in ", filename
@@ -82,7 +85,7 @@ def main(args):
     plt.ylabel("Bandwidth (Mbps)")
     graph_utils.set_non_negative_axes()
     graph_utils.set_ticks()
-    plt.set_legend_below()
+    graph_utils.set_legend_below()
     filename = args.output_name + '_outgoing_bandwidth_windowed.eps'
 
     plt.savefig(filename, format='eps')

@@ -78,6 +78,9 @@ def main(args):
         plt.figure(3)
         plt.title(args.title)
 
+    label_count = len(args.input_files) * len(args.window_size)
+    graph_utils.latexify(bottom_label_rows=label_count / 2)
+
     # Output the server graph.
     plt.figure(1)
     plt.ylabel("Median Packet Size")

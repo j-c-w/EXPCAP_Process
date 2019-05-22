@@ -140,6 +140,9 @@ def main(args):
         plt.figure(8)
         plt.title('Server Traffic (Bandwidths): ')
 
+    label_count = len(args.input_files) * len(args.thresholds)
+    graph_utils.latexify(bottom_label_rows=label_count / 2)
+
     plt.figure(1)
     plt.xlabel("Burst Length (packets)")
     plt.ylabel("CDF")

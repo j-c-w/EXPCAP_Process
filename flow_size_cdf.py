@@ -61,6 +61,9 @@ def main(args):
         plt.figure(2)
         plt.title(args.title)
 
+    label_count = len(args.input_files)
+    graph_utils.latexify(bottom_label_rows=label_count / 2)
+
     plt.figure(1)
     plt.xlabel("Flow Size (B)")
     plt.ylabel("CDF")

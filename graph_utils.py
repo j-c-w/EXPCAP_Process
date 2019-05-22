@@ -111,7 +111,7 @@ def legend_upper_left():
     plt.legend(loc='upper left')
 
 
-def latexify(fig_width=None, fig_height=None, columns=2, space_below_graph=0.0):
+def latexify(fig_width=None, fig_height=None, columns=2, space_below_graph=0.0, bottom_label_rows=0):
     """Set up matplotlib's RC params for LaTeX plotting.
     Call this before plotting a figure.
 
@@ -138,6 +138,13 @@ def latexify(fig_width=None, fig_height=None, columns=2, space_below_graph=0.0):
 
     # Add some height for the labels.
     fig_height += space_below_graph
+    # Make the graph taller to account for the labels at the
+    # bottom of the graph.
+    fig_height += bottom_label_rows * 0.33
+    if bottom_label_rows > 0:
+        # And a bit to make up for the padding at the beginning
+        # and end of such a label box
+        fig_height += 0.2
 
     MAX_HEIGHT_INCHES = 8.0
     if fig_height > MAX_HEIGHT_INCHES:

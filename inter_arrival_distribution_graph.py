@@ -111,6 +111,9 @@ def main(args):
         plt.figure(4)
         plt.title("Client Traffic: " + args.title)
 
+    label_count = len(args.input_files)
+    graph_utils.latexify(bottom_label_rows=label_count / 2)
+
     plt.figure(1)
     plt.ylabel("CDF")
     plt.xlabel("Inter-arrival time (ns)")

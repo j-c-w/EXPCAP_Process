@@ -92,6 +92,9 @@ def main(args):
         plt.figure(4)
         plt.title('Server Traffic: ' + args.title)
 
+    label_count = len(args.input_files) * len(args.window_size)
+    graph_utils.latexify(bottom_label_rows=label_count / 2)
+
     plt.figure(1)
     plt.xlabel("Bandwidth (Mbps)")
     plt.ylabel("CDF")

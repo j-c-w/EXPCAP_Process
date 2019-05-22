@@ -142,10 +142,13 @@ def main(args):
         plt.figure(4)
         plt.title('Server Traffic: ' + args.title)
 
+    label_count = len(args.input_files)
+    graph_utils.latexify(bottom_label_rows=label_count / 2)
+
     plt.figure(1)
     plt.xlim([min(outgoing_ipg_gaps), nintyninth_percentile])
     plt.ylabel("CDF")
-    plt.xlabel("IPG (ns)")
+    plt.xlabel("Inter-Arrival Time (ns)")
     graph_utils.set_legend_below()
     graph_utils.set_non_negative_axes()
     graph_utils.set_yax_max_one()
@@ -156,7 +159,7 @@ def main(args):
 
     plt.figure(2)
     plt.ylabel("CDF")
-    plt.xlabel("IPG (ns)")
+    plt.xlabel("Inter-Arrival Time (ns)")
     graph_utils.set_legend_below()
     graph_utils.set_log_x()
     graph_utils.set_non_negative_axes()
@@ -169,7 +172,7 @@ def main(args):
     plt.figure(3)
     plt.xlim([min(outgoing_ipg_gaps), nintyninth_percentile])
     plt.ylabel("CDF")
-    plt.xlabel("IPG (ns)")
+    plt.xlabel("Inter-Arrival Time (ns)")
     graph_utils.set_legend_below()
     graph_utils.set_non_negative_axes()
     graph_utils.set_yax_max_one()
@@ -181,7 +184,7 @@ def main(args):
 
     plt.figure(4)
     plt.ylabel("CDF")
-    plt.xlabel("IPG (ns)")
+    plt.xlabel("Inter-Arrival Time (ns)")
     graph_utils.set_legend_below()
     graph_utils.set_log_x()
     graph_utils.set_non_negative_axes()

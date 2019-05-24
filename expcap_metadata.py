@@ -200,7 +200,6 @@ class ExpcapPacket(object):
 
     def set_state(self, string):
         elements = string.split(',')
-        print elements
         self.start_time = self.__decimal_or_none(elements[0])
         self.flags = self.__int_or_none(elements[1])
         self.src_addr_dst_addr = self.__int_or_none(elements[2])

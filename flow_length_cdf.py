@@ -63,7 +63,7 @@ def main(args):
     graph_utils.latexify(bottom_label_rows=label_count / 2)
 
     plt.figure(1)
-    plt.xlabel("Flow Completion Time (us)")
+    plt.xlabel("Flow Completion Time (s)")
     plt.ylabel("CDF")
     graph_utils.set_legend_below()
     graph_utils.set_yax_max_one()
@@ -74,7 +74,7 @@ def main(args):
     print "Done! File is in ", filename
 
     plt.figure(2)
-    plt.xlabel("Flow Completion Time (us)")
+    plt.xlabel("Flow Completion Time (s)")
     plt.ylabel("CDF")
     graph_utils.set_log_x()
     graph_utils.set_legend_below()

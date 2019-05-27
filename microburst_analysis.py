@@ -10,7 +10,11 @@ import sys
 
 MICROBURST_DEBUG = False
 
+# Store the max limits encountered with packets.  If they are all close enough, we'll use the max one to unify the x axes.
+max_xlims_burst_lengths = []
+
 def microburst_analyze(bursts, identifier, pcap_file, label, id_base):
+    global max_xlims_burst_lengths
     print identifier, " Number of bursts", len(bursts)
     bins = 1000
     if len(bursts) == 0:
@@ -20,6 +24,7 @@ def microburst_analyze(bursts, identifier, pcap_file, label, id_base):
     lengths = [len(x) for x in bursts]
     min_lim = min(lengths)
     max_lim = max(lengths)
+    max_xlims_burst_lengths.append(max_lim)
     small_diff = (min_lim + max_lim) / 10000.0
     bins = np.append(np.linspace(min_lim, max_lim + small_diff, 1000), np.inf)
     plt.figure(1 + id_base)
@@ -140,12 +145,27 @@ def main(args):
         plt.figure(8)
         plt.title('Server Traffic (Bandwidths): ')
 
+    global max_xlims_burst_lengths
+    # Note that this only applies to the linear graphs.
+    # You need a different check for log graphs.
+    use_unified_length_max_linear = True
+    # Get the max of the max limits.
+    max_max_xlim = max(max_xlims_burst_lengths)
+    for lim in max_xlims_burst_lengths:
+        if float(lim) / float(max_max_xlim) < 0.3:
+            # If the x limits are too far apart, it is not
+            # worth using a unified x axis scale.
+            use_unified_length_max_linear = False
+    unified_length_max = max_max_xlim
+
     label_count = len(args.input_files) * len(args.thresholds)
     graph_utils.latexify(bottom_label_rows=label_count / 2)
 
     plt.figure(1)
     plt.xlabel("Burst Length (packets)")
     plt.ylabel("CDF")
+    if use_unified_length_max_linear:
+        plt.xlim([0, unified_length_max])
     graph_utils.set_legend_below()
     graph_utils.set_yax_max_one()
     graph_utils.set_non_negative_axes()
@@ -194,6 +214,8 @@ def main(args):
     plt.figure(5)
     plt.xlabel("Burst Length (packets)")
     plt.ylabel("CDF")
+    if use_unified_length_max_linear:
+        plt.xlim([0, unified_length_max])
     graph_utils.set_legend_below()
     graph_utils.set_yax_max_one()
     graph_utils.set_non_negative_axes()

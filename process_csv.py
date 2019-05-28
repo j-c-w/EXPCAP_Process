@@ -295,14 +295,9 @@ def find_bursts(filename, count=None, ipg_threshold=20000, packet_threshold=20, 
 
     total_bursts = sum([len(burst) for burst in bursts])
     print "We have a total of ", total_bursts, "packets in bursts"
-    # Lets store less than 50 million total packets
-    # to be able to save this to the disk.
-    if total_bursts < 50000000:
-        with open(cache_name, 'w') as f:
-            with flock.Flock(f, flock.LOCK_EX) as lock:
-                expcap_metadata.double_list_save_expcaps_to(f, bursts)
-    else:
-        print "WARNING: Burst too big, not caching."
+    with open(cache_name, 'w') as f:
+        with flock.Flock(f, flock.LOCK_EX) as lock:
+            expcap_metadata.double_list_save_expcaps_to(f, bursts)
 
     return bursts
 

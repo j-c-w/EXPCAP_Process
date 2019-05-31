@@ -1,0 +1,7 @@
+# The format of this should be:
+# A name, followed by a comma ','
+#    A command for a graphing script.  The graphing script may reference files to be extracted.
+# Then, there should be a comman ',', followed by a list of files.  The list of files needs to be in two parts, and it needs to contain every file used in the command.  Each file needs to be the name of the file to copy from, and the name of the file to finish the extraction to.
+# So, to extract capture_run.bz2 into capture_run.csv and run the command 'python plot.py capture_run.csv', we would write:
+# example plot,python plot.py capture_run.csv, capture_run.bz2 capture_run.csv
+BandwidthCDF,python bandwidth_cdf.py --input /root/jcw78/large_processing_disk/cache_files/memcached_2_machines.csv "2 machines" --input /root/jcw78/large_processing_disk/cache_files/memcached_3_machines.csv "3 machines" --input /root/jcw78/large_processing_disk/cache_files/memcached_4_machines.csv "4 machines" --input /root/jcw78/large_processing_disk/cache_files/memcached_5_machines.csv "5 machines" --input /root/jcw78/large_processing_disk/cache_files/memcached_6_machines.csv "6 machines" --input /root/jcw78/large_processing_disk/cache_files/memcached_7_machines.csv "7 machines" --server 192.168.0.7 --window-size 1000000000 "1 ms" --output-name "memcached_all_machines_1ms_window",APPS_CAPTURE_DIRECTORY/memcached/NUMBER_MACHINES_machines/run/run_1/nf-server07.nf.cl.cam.ac.uk_captured_by_nf-server14.nf.cl.cam.ac.uk.expcap.bz2 /root/jcw78/large_processing_disk/cache_files/memcached_NUMBER_MACHINES_machines.csv

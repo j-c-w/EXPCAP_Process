@@ -6,6 +6,8 @@ The infrastructure here uses a config file format that is a CSV file.  It is doc
 
 The script 'draw\_graphs\_from\_config\_file.py' takes these config files as input.  All graphs are automatically drawn with linear and log scales.  Graphs  will take a very long time to draw the first time around.  The infrastructure automatically caches intermediate results which gives orders of magnitude speedup when replotting.
 
+I advise that you start small: plot individual graphs of everything to generate the cache files trying to plot graphs that simultaneously use many traces.  *You will need a lot of RAM if you are using big traces.* (Processing requires approximately 500 bytes of memory per packet)
+
 To understand the available command line options, use 'python graph\_script.py -h':
 Arguments that take two options are generally of the form: <value> <name for a labe\l on that graph>
 (Some examples are --window-size 1000000 "1 us window" or --input-file run\_with\_x\_machines "x machines")

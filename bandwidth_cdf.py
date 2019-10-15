@@ -49,8 +49,8 @@ def main(args):
             percentiles = np.linspace(0.0, 1.0, 10000)
             sorted_bandwidths = [x for x in sorted(incoming_bandwidths) if x > 0.0]
             sorted_out_bandwidths = [x for x in sorted(outgoing_bandwidths) if x > 0.0]
-            with open(pcap_file + '.in_percentiles', 'w') as in_file:
-                with open(pcap_file + '.out_percentiles', 'w') as out_file:
+            with open(pcap_file + label_suffix + '.in_percentiles', 'w') as in_file:
+                with open(pcap_file + label_suffix + '.out_percentiles', 'w') as out_file:
                     contents_in = []
                     contents_out = []
                     count_in = len(sorted_bandwidths) - 1
